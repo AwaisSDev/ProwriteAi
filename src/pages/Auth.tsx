@@ -18,7 +18,7 @@ const Auth = () => {
         
         <div className="text-center">
           <Link to="/" className="inline-block mb-6 text-2xl font-bold text-white tracking-tighter hover:opacity-80 transition-opacity">
-            ProWrite<span className="text-purple-500">.</span>
+            ProwriteAI<span className="text-purple-500">.</span>
           </Link>
           <h2 className="text-3xl font-extrabold tracking-tight text-white">
             {isLogin ? 'Welcome back' : 'Create account'}

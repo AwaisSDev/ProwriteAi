@@ -28,7 +28,7 @@ const Navbar = () => {
           </Link>
 
           {/* Wrapped your Get Started button */}
-          <Link to="/gs">
+          <Link to="/Dashboard">
             <Button size="sm">
               Get Started
             </Button>

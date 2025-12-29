@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth"; // Added this
+import Dashboard from "./pages/Dashboard"; // Added this
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} /> {/* Added this */}
+            <Route path="/dashboard" element={<Dashboard/>} /> {/* Added this */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
