@@ -1,30 +1,77 @@
-import React, { useState } from "react";
-import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'writer' | 'history' | 'settings'>('writer');
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState("");
-    const [step, setStep] = useState(0); 
+    const [step, setStep] = useState(0);
+    const [productName, setProductName] = useState("");
+    const [productFeatures, setProductFeatures] = useState("");
+    const [tone, setTone] = useState("Professional");
+    // HISTORY LOGIC
+    const [history, setHistory] = useState<{ name: string, text: string, date: string }[]>(() => {
+        const saved = localStorage.getItem("prowrite_history");
+        return saved ? JSON.parse(saved) : [];
+    });
 
     const handleLogout = () => {
-        navigate("/"); 
+        navigate("/");
     };
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
+        if (!productName || !productFeatures) return alert("Fill in the fields!");
+
         setIsLoading(true);
         setResult("");
-        setStep(1); 
-        setTimeout(() => setStep(2), 5000);  
-        setTimeout(() => setStep(3), 10000); 
-        setTimeout(() => setStep(4), 15000); 
-        setTimeout(() => {
+
+        try {
+            // 1. START THE API CALL IMMEDIATELY (Don't await yet!)
+            const apiPromise = fetch("/api/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: productName, features: productFeatures, tone: tone }),
+            });
+
+            // 2. RUN ANIMATIONS
+            setStep(1);
+            await delay(1200);
+            setStep(2);
+            await delay(1200);
+            setStep(3);
+            await delay(1200);
+            setStep(4);
+            await delay(1000);
+
+            // 3. NOW GET THE RESULT
+            const response = await apiPromise;
+            if (!response.ok) throw new Error("API Failed");
+
+            const data = await response.json();
+            const finalResult = data.description;
+            setResult(finalResult);
+
+            // SAVE TO HISTORY
+            const newEntry = {
+                name: productName,
+                text: finalResult,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            };
+            const updatedHistory = [newEntry, ...history].slice(0, 10);
+            setHistory(updatedHistory);
+            localStorage.setItem("prowrite_history", JSON.stringify(updatedHistory));
+
+        } catch (error) {
+            console.error(error);
+            setResult("Error: AI took too long or API is down.");
+        } finally {
             setIsLoading(false);
             setStep(0);
-            setResult("Success! Your premium AI description is ready. We've maximized SEO density and perfected the brand voice for a high-converting result.");
-        }, 20000);
+        }
     };
 
     return (
@@ -33,7 +80,7 @@ const Dashboard = () => {
             <aside className="w-64 bg-white border-r border-slate-200 p-6 flex flex-col gap-8 hidden md:flex shadow-sm">
                 <Link to="/" className="no-underline group">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-mdw-9 h-9 rounded-xl gradient-bg flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-md transition-transform duration-300 group-hover:scale-110">
                             <Sparkles className="w-5 h-5 text-white" />
                         </div>
                         <span className="text-xl font-bold text-foreground">ProwriteAI</span>
@@ -62,11 +109,35 @@ const Dashboard = () => {
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold uppercase text-slate-400">Product Name</label>
-                                    <input type="text" placeholder="Enter product name..." className="w-full h-12 px-4 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                                    <input
+                                        type="text"
+                                        value={productName}
+                                        onChange={(e) => setProductName(e.target.value)}
+                                        placeholder="Enter product name..."
+                                        className="w-full h-12 px-4 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold uppercase text-slate-400">Writing Tone</label>
+                                    <select
+                                        value={tone}
+                                        onChange={(e) => setTone(e.target.value)}
+                                        className="w-full h-12 px-4 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
+                                    >
+                                        <option>Professional</option>
+                                        <option>Hype & Energetic</option>
+                                        <option>Funny & Sarcastic</option>
+                                        <option>Minimalist (Apple Style)</option>
+                                    </select>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold uppercase text-slate-400">Key Features</label>
-                                    <textarea placeholder="Describe features..." className="w-full h-48 p-4 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none" />
+                                    <textarea
+                                        value={productFeatures}
+                                        onChange={(e) => setProductFeatures(e.target.value)}
+                                        placeholder="Describe features..."
+                                        className="w-full h-48 p-4 bg-slate-50 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
+                                    />
                                 </div>
                                 <button
                                     onClick={handleGenerate}
@@ -79,50 +150,107 @@ const Dashboard = () => {
                             </div>
                         </section>
 
-                        <section className="flex-[1.2] p-10 bg-[#F8F9FC] flex flex-col">
+                        <section className="flex-[1.2] p-10 bg-[#F8F9FC] flex flex-col h-full overflow-hidden">
                             <h2 className="text-xl font-bold text-slate-800 mb-6">AI Result</h2>
                             <div className="flex-1 bg-white border border-slate-200 rounded-[24px] shadow-sm p-8 flex flex-col relative overflow-hidden">
-                                {!isLoading && !result && (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-center">
-                                        <Sparkles className="w-12 h-12 text-slate-200 mb-4" />
-                                        <h3 className="text-lg font-medium text-slate-700 italic">Ready to write...</h3>
-                                    </div>
-                                )}
-                                {isLoading && (
-                                    <div className="flex-1 flex flex-col items-center justify-center space-y-8">
-                                        <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl shadow-indigo-200">
-                                            <Sparkles className="text-white w-8 h-8" />
+
+                                <div className="flex-1 overflow-y-auto pr-2 flex flex-col items-center justify-center h-full">
+                                    {!isLoading && !result && (
+                                        <div className="flex flex-col items-center justify-center text-center">
+                                            <Sparkles className="w-12 h-12 text-slate-200 mb-4" />
+                                            <h3 className="text-lg font-medium text-slate-700 italic">Ready to write...</h3>
                                         </div>
-                                        <div className="w-full max-w-[240px] space-y-4">
-                                            <div className={`flex items-center gap-4 transition-all duration-700 ${step >= 1 ? 'opacity-100' : 'opacity-10'}`}>
-                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > 1 ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
-                                                    {step > 1 ? "✓" : "1"}
-                                                </div>
-                                                <span className={`text-sm font-bold ${step === 1 ? 'text-indigo-600' : 'text-slate-400'}`}>SEO Analysis</span>
+                                    )}
+
+                                    {isLoading && (
+                                        <div className="flex flex-col items-center justify-center space-y-8 w-full">
+                                            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl shadow-indigo-200">
+                                                <Sparkles className="text-white w-8 h-8" />
                                             </div>
-                                            {/* ... (steps 2 and 3 continue here) */}
-                                            <div className={`flex items-center gap-4 transition-all duration-700 ${step >= 2 ? 'opacity-100' : 'opacity-10'}`}>
-                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > 2 ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
-                                                    {step > 2 ? "✓" : "2"}
+                                            <div className="w-full max-w-[240px] space-y-4">
+                                                <div className={`flex items-center gap-4 transition-all duration-700 ${step >= 1 ? 'opacity-100' : 'opacity-10'}`}>
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > 1 ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
+                                                        {step > 1 ? "✓" : "1"}
+                                                    </div>
+                                                    <span className={`text-sm font-bold ${step === 1 ? 'text-indigo-600' : 'text-slate-400'}`}>SEO Analysis</span>
                                                 </div>
-                                                <span className={`text-sm font-bold ${step === 2 ? 'text-indigo-600' : 'text-slate-400'}`}>Tone Refinement</span>
-                                            </div>
-                                            <div className={`flex items-center gap-4 transition-all duration-700 ${step >= 3 ? 'opacity-100' : 'opacity-10'}`}>
-                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > 3 ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
-                                                    {step > 3 ? "✓" : "3"}
+                                                <div className={`flex items-center gap-4 transition-all duration-700 ${step >= 2 ? 'opacity-100' : 'opacity-10'}`}>
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > 2 ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
+                                                        {step > 2 ? "✓" : "2"}
+                                                    </div>
+                                                    <span className={`text-sm font-bold ${step === 2 ? 'text-indigo-600' : 'text-slate-400'}`}>Tone Refinement</span>
                                                 </div>
-                                                <span className={`text-sm font-bold ${step === 3 ? 'text-indigo-600' : 'text-slate-400'}`}>Final Polish</span>
+                                                <div className={`flex items-center gap-4 transition-all duration-700 ${step >= 3 ? 'opacity-100' : 'opacity-10'}`}>
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > 3 ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
+                                                        {step > 3 ? "✓" : "3"}
+                                                    </div>
+                                                    <span className={`text-sm font-bold ${step === 3 ? 'text-indigo-600' : 'text-slate-400'}`}>Final Polish</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
-                                {!isLoading && result && (
-                                    <div className="flex-1 animate-in fade-in zoom-in-95 duration-1000">
-                                        <div className="p-8 bg-indigo-50/20 border border-indigo-100 rounded-[20px] text-slate-700 leading-relaxed italic text-lg shadow-sm">
-                                            {result}
+                                    )}
+
+                                    {!isLoading && result && (
+                                        <div className="w-full h-full animate-in fade-in zoom-in-95 duration-1000 relative">
+                                            {/* Copy Button */}
+                                            <button
+                                                onClick={() => navigator.clipboard.writeText(result)}
+                                                className="absolute top-0 right-0 p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition-all z-10"
+                                            >
+                                                <Copy size={16} />
+                                            </button>
+
+                                            {/* This is the magic part you were asking about */}
+                                            <div className="p-8 bg-indigo-50/20 border border-indigo-100 rounded-[20px] text-slate-700 shadow-sm overflow-y-auto max-h-full">
+                                                {result.split('\n').map((line, i) => {
+                                                    const trimmedLine = line.trim();
+                                                    if (!trimmedLine) return null;
+
+                                                    // 1. FUZZY HEADING CHECK: This catches "TITLE:", "TITLE", "Title:", etc.
+                                                    const upperLine = trimmedLine.toUpperCase();
+                                                    const isTitle = upperLine.startsWith("TITLE");
+                                                    const isDesc = upperLine.startsWith("DESCRIPTION");
+                                                    const isFeat = upperLine.startsWith("FEATURES");
+                                                    const isTags = upperLine.startsWith("TAGS");
+
+                                                    // We check if the line is JUST the heading word (short length) 
+                                                    // to avoid turning a whole sentence into a badge
+                                                    if ((isTitle || isDesc || isFeat || isTags) && trimmedLine.length < 15) {
+                                                        return (
+                                                            <div key={i} className="mt-6 mb-2 first:mt-0">
+                                                                <span className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-md font-black tracking-widest uppercase">
+                                                                    {upperLine.replace(':', '')}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    // 2. TAGS STYLING: Look for hashtags
+                                                    if (trimmedLine.includes('#')) {
+                                                        return (
+                                                            <div key={i} className="flex flex-wrap gap-2 mt-3">
+                                                                {trimmedLine.split(/\s+/).filter(t => t.startsWith('#')).map((tag, index) => (
+                                                                    <span key={index} className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-lg">
+                                                                        {tag}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    // 3. NUMBERED LISTS: Add a little indent for 1. 2. 3.
+                                                    const isNumbered = /^\d\./.test(trimmedLine);
+
+                                                    return (
+                                                        <div key={i} className={`text-slate-600 leading-relaxed ${isNumbered ? 'ml-4 font-medium mb-1' : 'mb-4'}`}>
+                                                            {trimmedLine}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </section>
                     </div>
@@ -132,17 +260,28 @@ const Dashboard = () => {
                     <div className="flex-1 p-10 bg-white overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <h1 className="text-2xl font-bold text-slate-800 mb-8">Generation History</h1>
                         <div className="space-y-4">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="p-5 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors flex justify-between items-center group">
-                                    <div>
-                                        <h3 className="font-bold text-slate-700">Premium Leather Watch</h3>
-                                        <p className="text-sm text-slate-400">Generated on Oct {10 + i}, 2025</p>
+                            {history.length === 0 ? (
+                                <p className="text-slate-400 italic">No magic saved yet...</p>
+                            ) : (
+                                history.map((item, index) => (
+                                    <div key={index} className="p-5 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors flex justify-between items-center group">
+                                        <div className="cursor-pointer flex-1" onClick={() => { setResult(item.text); setActiveTab('writer'); }}>
+                                            <h3 className="font-bold text-slate-700">{item.name}</h3>
+                                            <p className="text-sm text-slate-400">Generated on {item.date}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                const newHistory = history.filter((_, i) => i !== index);
+                                                setHistory(newHistory);
+                                                localStorage.setItem("prowrite_history", JSON.stringify(newHistory));
+                                            }}
+                                            className="p-2 text-slate-300 hover:text-red-500 opacity-100 group-hover:opacity-100 transition-all"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
                                     </div>
-                                    <button className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 )}
