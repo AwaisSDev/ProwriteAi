@@ -13,6 +13,7 @@ const Dashboard = () => {
     const [productName, setProductName] = useState("");
     const [productFeatures, setProductFeatures] = useState("");
     const [tone, setTone] = useState("Professional");
+    
     // HISTORY LOGIC
     const [history, setHistory] = useState<{ name: string, text: string, date: string }[]>(() => {
         const saved = localStorage.getItem("prowrite_history");
@@ -30,7 +31,7 @@ const Dashboard = () => {
         setResult("");
 
         try {
-            // 1. START THE API CALL IMMEDIATELY (Don't await yet!)
+            // 1. START THE API CALL IMMEDIATELY
             const apiPromise = fetch("/api/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -192,7 +193,6 @@ const Dashboard = () => {
 
                                     {!isLoading && result && (
                                         <div className="w-full h-full animate-in fade-in zoom-in-95 duration-1000 relative">
-                                            {/* Copy Button */}
                                             <button
                                                 onClick={() => navigator.clipboard.writeText(result)}
                                                 className="absolute top-0 right-0 p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition-all z-10"
@@ -200,32 +200,35 @@ const Dashboard = () => {
                                                 <Copy size={16} />
                                             </button>
 
-                                            {/* This is the magic part you were asking about */}
-                                            <div className="p-8 bg-indigo-50/20 border border-indigo-100 rounded-[20px] text-slate-700 shadow-sm overflow-y-auto max-h-full">
+                                            <div className="p-8 bg-indigo-50/20 border border-indigo-100 rounded-[20px] text-slate-700 shadow-sm overflow-y-auto max-h-full w-full">
                                                 {result.split('\n').map((line, i) => {
                                                     const trimmedLine = line.trim();
                                                     if (!trimmedLine) return null;
 
-                                                    // 1. FUZZY HEADING CHECK: This catches "TITLE:", "TITLE", "Title:", etc.
-                                                    const upperLine = trimmedLine.toUpperCase();
-                                                    const isTitle = upperLine.startsWith("TITLE");
-                                                    const isDesc = upperLine.startsWith("DESCRIPTION");
-                                                    const isFeat = upperLine.startsWith("FEATURES");
-                                                    const isTags = upperLine.startsWith("TAGS");
+                                                    // UPDATED LOGIC TO HANDLE "TITLE: [TEXT]" ON THE SAME LINE
+                                                    const match = trimmedLine.match(/^(TITLE|DESCRIPTION|FEATURES|TAGS):?\s*(.*)/i);
+                                                    
+                                                    if (match) {
+                                                        const headerWord = match[1].toUpperCase();
+                                                        const remainingText = match[2];
 
-                                                    // We check if the line is JUST the heading word (short length) 
-                                                    // to avoid turning a whole sentence into a badge
-                                                    if ((isTitle || isDesc || isFeat || isTags) && trimmedLine.length < 15) {
                                                         return (
                                                             <div key={i} className="mt-6 mb-2 first:mt-0">
-                                                                <span className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-md font-black tracking-widest uppercase">
-                                                                    {upperLine.replace(':', '')}
-                                                                </span>
+                                                                <div className="mb-2">
+                                                                    <span className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-md font-black tracking-widest uppercase inline-block">
+                                                                        {headerWord}
+                                                                    </span>
+                                                                </div>
+                                                                {remainingText && (
+                                                                    <div className="text-slate-600 leading-relaxed mb-4">
+                                                                        {remainingText}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         );
                                                     }
 
-                                                    // 2. TAGS STYLING: Look for hashtags
+                                                    // TAGS STYLING
                                                     if (trimmedLine.includes('#')) {
                                                         return (
                                                             <div key={i} className="flex flex-wrap gap-2 mt-3">
@@ -238,9 +241,8 @@ const Dashboard = () => {
                                                         );
                                                     }
 
-                                                    // 3. NUMBERED LISTS: Add a little indent for 1. 2. 3.
+                                                    // NUMBERED LISTS
                                                     const isNumbered = /^\d\./.test(trimmedLine);
-
                                                     return (
                                                         <div key={i} className={`text-slate-600 leading-relaxed ${isNumbered ? 'ml-4 font-medium mb-1' : 'mb-4'}`}>
                                                             {trimmedLine}
@@ -270,12 +272,13 @@ const Dashboard = () => {
                                             <p className="text-sm text-slate-400">Generated on {item.date}</p>
                                         </div>
                                         <button
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation();
                                                 const newHistory = history.filter((_, i) => i !== index);
                                                 setHistory(newHistory);
                                                 localStorage.setItem("prowrite_history", JSON.stringify(newHistory));
                                             }}
-                                            className="p-2 text-slate-300 hover:text-red-500 opacity-100 group-hover:opacity-100 transition-all"
+                                            className="p-2 text-slate-300 hover:text-red-500 transition-all"
                                         >
                                             <Trash2 size={18} />
                                         </button>
