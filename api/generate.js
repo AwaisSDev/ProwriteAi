@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 
+// Make a .env file at the root of your project with GROQ_API_KEY=your_api_key
 // Vercel will pull this from your environment variables
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
