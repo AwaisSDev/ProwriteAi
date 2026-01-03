@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient"; // Ensure this path is correct
+
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 const Dashboard = () => {
+    const [user, setUser] = useState<any>(null);
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'writer' | 'history' | 'settings'>('writer');
     const [isLoading, setIsLoading] = useState(false);
@@ -13,14 +16,28 @@ const Dashboard = () => {
     const [productName, setProductName] = useState("");
     const [productFeatures, setProductFeatures] = useState("");
     const [tone, setTone] = useState("Professional");
-    
+
+    // AUTH CHECK - Ensures only logged in users stay here
+    useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                navigate('/login');
+            } else {
+                setUser(user); // Save user info
+            }
+        };
+        checkUser();
+    }, [navigate]);
+
     // HISTORY LOGIC
     const [history, setHistory] = useState<{ name: string, text: string, date: string }[]>(() => {
         const saved = localStorage.getItem("prowrite_history");
         return saved ? JSON.parse(saved) : [];
     });
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
         navigate("/");
     };
 
@@ -205,9 +222,8 @@ const Dashboard = () => {
                                                     const trimmedLine = line.trim();
                                                     if (!trimmedLine) return null;
 
-                                                    // UPDATED LOGIC TO HANDLE "TITLE: [TEXT]" ON THE SAME LINE
                                                     const match = trimmedLine.match(/^(TITLE|DESCRIPTION|FEATURES|TAGS):?\s*(.*)/i);
-                                                    
+
                                                     if (match) {
                                                         const headerWord = match[1].toUpperCase();
                                                         const remainingText = match[2];
@@ -228,7 +244,6 @@ const Dashboard = () => {
                                                         );
                                                     }
 
-                                                    // TAGS STYLING
                                                     if (trimmedLine.includes('#')) {
                                                         return (
                                                             <div key={i} className="flex flex-wrap gap-2 mt-3">
@@ -241,7 +256,6 @@ const Dashboard = () => {
                                                         );
                                                     }
 
-                                                    // NUMBERED LISTS
                                                     const isNumbered = /^\d\./.test(trimmedLine);
                                                     return (
                                                         <div key={i} className={`text-slate-600 leading-relaxed ${isNumbered ? 'ml-4 font-medium mb-1' : 'mb-4'}`}>
@@ -294,10 +308,19 @@ const Dashboard = () => {
                         <h1 className="text-2xl font-bold text-slate-800 mb-8">Account Settings</h1>
                         <div className="max-w-md space-y-6">
                             <div className="flex items-center gap-4 p-6 bg-indigo-50 rounded-2xl">
-                                <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">JD</div>
+                                <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                                    {/* Dynamic Initial */}
+                                    {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U"}
+                                </div>
                                 <div>
-                                    <p className="font-bold text-slate-800">John Doe</p>
-                                    <p className="text-sm text-indigo-600 font-medium">Pro Plan User</p>
+                                    {/* Dynamic Name */}
+                                    <p className="font-bold text-slate-800">
+                                        {user?.user_metadata?.full_name || "User"}
+                                    </p>
+                                    {/* Dynamic Email */}
+                                    <p className="text-sm text-indigo-600 font-medium">
+                                        {user?.email || "No email found"}
+                                    </p>
                                 </div>
                             </div>
                             <div className="space-y-4">
