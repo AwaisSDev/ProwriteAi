@@ -24,6 +24,11 @@ dist-ssr
 *.sw?
 .vercel
 
+# Ignore the supabase client config
 src/supabaseClient.ts
 
+# Ignore environment variables
 .env
+
+# Ignore node modules
+node_modules/
