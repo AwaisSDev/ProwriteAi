@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight, Github, Chrome } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../supabaseClient'; // Make sure this path is correct
+import { supabase } from '../lib/supabaseClient'; // Make sure this path is correct
 
 const Auth = () => {
   const navigate = useNavigate();
