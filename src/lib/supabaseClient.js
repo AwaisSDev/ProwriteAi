@@ -1,11 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = 'https://lpxhedhqdakigtvqeppq.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxweGhlZGhxZGFraWd0dnFlcHBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0MzY3NDcsImV4cCI6MjA4MzAxMjc0N30.gyWf_jGYz7wNViCiCcrKoxXeUN0Re3OSmdjz4XMs_Hw'
 
-// This if-statement prevents the crash you're seeing
-if (!supabaseUrl || !supabaseKey) {
-    console.error("Missing Supabase credentials!");
-}
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
