@@ -50,11 +50,10 @@ const Footer = () => {
           <p className="text-lg text-white/70 mb-8 max-w-xl mx-auto">
             Join thousands of e-commerce brands using ProwriteAI to create compelling product descriptions.
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="bg-primary text-white font-semibold hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-0"
-          >
-            Start Your Free Trial
+          > <a href="#demo">Start Your Free Trial</a>
           </Button>
         </div>
 

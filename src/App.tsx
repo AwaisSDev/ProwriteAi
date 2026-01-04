@@ -1,28 +1,39 @@
-import { Toaster } from "@/components/ui/toaster"; // Main toaster for notifications
-import { Toaster as Sonner } from "@/components/ui/sonner"; // Sonner toaster for alternative notifications
-import { TooltipProvider } from "@/components/ui/tooltip"; // Wraps app to provide tooltips
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"; // React Query setup
-import { BrowserRouter, Routes, Route } from "react-router-dom"; // Routing components
-import { HelmetProvider } from "react-helmet-async"; // Handles <head> changes
-import Index from "./pages/Index"; // Home page component
-import NotFound from "./pages/NotFound"; // 404 page component
-import Auth from "./pages/Auth"; // Added this
-import Dashboard from "./pages/Dashboard"; // Added this
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import Onboarding from "./pages/Onboarding";
 
-const queryClient = new QueryClient(); // Initialize React Query client
+const queryClient = new QueryClient();
 
 const App = () => (
-  <HelmetProvider> {/* Wrap app with HelmetProvider */}
-    <QueryClientProvider client={queryClient}> {/* Provide React Query client */}
-      <TooltipProvider> {/* Provide tooltips to all children */}
-        <Toaster /> {/* Default toaster for notifications */}
-        <Sonner /> {/* Sonner toaster alternative */}
-        <BrowserRouter> {/* Enable routing */}
-          <Routes> {/* Define all routes */}
-            <Route path="/" element={<Index />} /> {/* Home page */}
-            <Route path="/auth" element={<Auth />} /> {/* Added this */}
-            <Route path="/dashboard" element={<Dashboard />} /> {/* Added this */}
-            <Route path="*" element={<NotFound />} /> {/* Catch-all 404 */}
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Landing Page */}
+            <Route path="/" element={<Index />} />
+
+            {/* Login / Signup */}
+            <Route path="/auth" element={<Auth />} />
+
+            {/* Figma-Style Onboarding Flow */}
+            <Route path="/onboarding" element={<Onboarding />} />
+
+            {/* Main App Dashboard */}
+            <Route path="/dashboard" element={<Dashboard />} />
+
+            {/* 404 Page */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
@@ -30,4 +41,4 @@ const App = () => (
   </HelmetProvider>
 );
 
-export default App; // Export App component
+export default App;

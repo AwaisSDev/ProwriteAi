@@ -27,19 +27,28 @@ const HeroSection = () => {
 
         {/* Subtext */}
         <p className="animate-fade-in-up opacity-0 delay-200 text-lg sm:text-xl text-muted-foreground max-w-2xl mb-10">
-          Generate high-converting product descriptions in seconds. 
+          Generate high-converting product descriptions in seconds.
           Our AI understands your brand voice and creates copy that sells.
         </p>
 
         {/* CTA Buttons */}
         <div className="animate-fade-in-up opacity-0 delay-300 flex flex-col sm:flex-row gap-4">
-          <Button variant="hero" size="lg" className="group">
-            Start Free Trial
-            <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-          </Button>
-          <Button variant="outline" size="lg">
-            Watch Demo
-          </Button>
+          <a href="#demo">
+            <Button
+              variant="hero"
+              size="lg"
+            >
+              Start Free Trial
+              <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+            </Button>
+          </a>
+
+          <a href="#demo">
+            <Button variant="outline" size="lg" className="group"
+              onClick={() => window.dispatchEvent(new Event('start-shine'))}>
+              Watch Demo
+            </Button>
+          </a>
         </div>
 
         {/* Trust badges */}

@@ -57,8 +57,10 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
     /* Brand strip specific colors */
-    --brand-bg: 0 0% 100%; /* white */
-    --brand-foreground: 230 25% 15%; /* dark text */
+    --brand-bg: 0 0% 100%;
+    /* white */
+    --brand-foreground: 230 25% 15%;
+    /* dark text */
   }
 
   .dark {
@@ -108,21 +110,24 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-    --brand-bg: 230 25% 12%; /* dark mode brand bg */
-    --brand-foreground: 220 20% 95%; /* dark mode brand text */
+    --brand-bg: 230 25% 12%;
+    /* dark mode brand bg */
+    --brand-foreground: 220 20% 95%;
+    /* dark mode brand text */
   }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     /* Dark Mode / Extension Overrides */
-    --strip-bg: rgb(46, 6, 83); 
+    --strip-bg: rgb(46, 6, 83);
     --strip-text: #94a3b8;
     --strip-border: linear-gradient(to right, transparent, #a855f7, #06138a, transparent);
     /* This makes logos white in dark mode so they don't disappear */
     --logo-filter: brightness(0) invert(1) opacity(0.8);
   }
 }
+
 @layer base {
   * {
     @apply border-border;
@@ -186,9 +191,12 @@
   }
 
   @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0) rotate(0deg);
     }
+
     50% {
       transform: translateY(-20px) rotate(2deg);
     }
@@ -199,6 +207,7 @@
       opacity: 0;
       transform: translateY(30px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -209,6 +218,7 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -219,6 +229,7 @@
       opacity: 0;
       transform: translateX(-30px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -230,6 +241,7 @@
       opacity: 0;
       transform: translateX(30px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -241,6 +253,7 @@
       opacity: 0;
       transform: scale(0.9);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
@@ -248,9 +261,12 @@
   }
 
   @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
       box-shadow: 0 0 20px hsl(250 84% 54% / 0.3);
     }
+
     50% {
       box-shadow: 0 0 40px hsl(250 84% 54% / 0.5);
     }
@@ -280,65 +296,100 @@
     animation: pulse-glow 2s ease-in-out infinite;
   }
 
-  .delay-100 { animation-delay: 0.1s; }
-  .delay-200 { animation-delay: 0.2s; }
-  .delay-300 { animation-delay: 0.3s; }
-  .delay-400 { animation-delay: 0.4s; }
-  .delay-500 { animation-delay: 0.5s; }
+  .delay-100 {
+    animation-delay: 0.1s;
+  }
+
+  .delay-200 {
+    animation-delay: 0.2s;
+  }
+
+  .delay-300 {
+    animation-delay: 0.3s;
+  }
+
+  .delay-400 {
+    animation-delay: 0.4s;
+  }
+
+  .delay-500 {
+    animation-delay: 0.5s;
+  }
 
   @keyframes scroll {
     0% {
       transform: translateX(0);
     }
+
     100% {
       transform: translateX(-50%);
     }
   }
 
   /* Force the background to pure white and remove constraints */
-.myrulz {
-  /* Deep Google Midnight Purple */
-  background-color: hsl(var(--background));
-  width: 100vw !important;
-  position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -51vw;
-  margin-right: -50vw;
+  .myrulz {
+    /* Deep Google Midnight Purple */
+    background-color: hsl(var(--background));
+    width: 100vw !important;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -51vw;
+    margin-right: -50vw;
 
-  /* Premium Gradient Border: Deep Indigo -> Electric Purple -> Deep Indigo */
-  border-top: 1px solid;
-  border-bottom: 1px solid;
-  border-image: linear-gradient(to right, transparent, #6366f1, #a855f7, #6366f1, transparent) 1;
-  
-  padding: 3rem 0;
+    /* Premium Gradient Border: Deep Indigo -> Electric Purple -> Deep Indigo */
+    border-top: 1px solid;
+    border-bottom: 1px solid;
+    border-image: linear-gradient(to right, transparent, #6366f1, #a855f7, #6366f1, transparent) 1;
+
+    padding: 3rem 0;
+  }
+
+  /* Container for the logos - MUST be white too */
+  .brand-logo-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5rem;
+    flex-shrink: 0;
+    background-color: linear-gradient(to right, #06138a, #000000, #06138a) 1 !important;
+  }
+
+  /* Make logos nice and big */
+  .logo-img {
+    height: 90px !important;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* Keep your existing animation */
+  .animate-scroll {
+    display: flex;
+    width: max-content;
+    animation: scroll-move 30s linear infinite;
+  }
+
+  @keyframes scroll-move {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
 }
 
-/* Container for the logos - MUST be white too */
-.brand-logo-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 5rem; 
-  flex-shrink: 0;
-  background-color: linear-gradient(to right, #06138a, #000000, #06138a) 1 !important; 
+@keyframes shimmer {
+  from {
+    background-position: 0% center;
+  }
+
+  to {
+    background-position: -200% center;
+  }
 }
 
-/* Make logos nice and big */
-.logo-img {
-  height: 90px !important; 
-  width: auto;
-  object-fit: contain;
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
 }
-
-/* Keep your existing animation */
-.animate-scroll {
-  display: flex;
-  width: max-content;
-  animation: scroll-move 30s linear infinite;
-}
-
-@keyframes scroll-move {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}}

@@ -17,9 +17,9 @@ export default async function handler(req, res) {
             messages: [
                 {
                     role: "system",
-                    content: "You are an elite copywriter. Follow this EXACT format: Write 'TITLE:' then a catchy hook. Write 'DESCRIPTION:' then a paragraph. Write 'FEATURES:' then a numbered list (1., 2., 3.). Write 'TAGS:' then 5 SEO tags starting with #. Use standard sentence case for descriptions. No stars."
+                    content: "You are an elite copywriter. Follow this EXACT format: Write 'TITLE:' then a catchy hook. Write 'DESCRIPTION:' then a paragraph and capitalize the first letter when starting the paragraph just one start word. Write 'FEATURES:' then a numbered list (1., 2., 3.). Write 'TAGS:' then 5 SEO tags starting with #. Use standard sentence case for descriptions. No stars."
                 },
-                    { role: "user", content: `Product: ${name}. Features: ${features}` }
+                { role: "user", content: `Product: ${name}. Features: ${features}` }
             ],
             model: "llama-3.3-70b-versatile",
         });

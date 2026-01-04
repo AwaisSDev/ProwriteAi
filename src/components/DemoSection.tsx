@@ -17,17 +17,30 @@ const DemoSection = () => {
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
+  // New state for purple shine trigger
+  const [isTryShining, setIsTryShining] = useState(false);
+
+  // Listen for the Watch Demo click
+  useEffect(() => {
+    const handleShine = () => {
+      setIsTryShining(true);
+      setTimeout(() => setIsTryShining(false), 50000);
+    };
+    window.addEventListener('start-shine', handleShine);
+    return () => window.removeEventListener('start-shine', handleShine);
+  }, []);
+
   const generateDescription = () => {
     if (!productName.trim()) return;
-    
+
     setIsGenerating(true);
     setDisplayedText("");
-    
+
     setTimeout(() => {
       const key = productName.toLowerCase();
-      const newDescription = sampleDescriptions[key] || 
+      const newDescription = sampleDescriptions[key] ||
         `Discover the extraordinary ${productName} – meticulously crafted for those who appreciate quality and innovation. This premium product combines exceptional functionality with stunning design, making it the perfect choice for discerning customers. Built with premium materials and backed by our satisfaction guarantee, the ${productName} is designed to exceed your expectations and enhance your everyday life.`;
-      
+
       setDescription(newDescription);
       setIsGenerating(false);
       setIsTyping(true);
@@ -117,14 +130,24 @@ const DemoSection = () => {
             </div>
           </div>
 
-          {/* Quick suggestions */}
-          <div className="mt-6 flex flex-wrap gap-2">
-            <span className="text-sm text-muted-foreground">Try:</span>
+          {/* Quick suggestions with Shine Effect */}
+          <div className="mt-6 flex flex-wrap gap-3 items-center">
+            {/* The Shiny Purple "Try:" Text - Only shines when triggered */}
+            <span className="text-sm font-bold">
+              <span className={`transition-all duration-700 ${isTryShining
+                ? "bg-gradient-to-r from-purple-400 via-fuchsia-500 to-purple-400 bg-[length:200%_auto] bg-clip-text text-transparent [animation:shimmer_2s_linear_infinite]"
+                : "text-muted-foreground"
+                }`}>
+                Try:
+              </span>
+            </span>
+
             {["wireless headphones", "running shoes", "coffee maker"].map((suggestion) => (
               <button
                 key={suggestion}
                 onClick={() => {
                   setProductName(suggestion);
+                  setTimeout(() => generateDescription(), 100);
                 }}
                 className="px-3 py-1 rounded-full text-sm bg-accent text-accent-foreground hover:bg-primary/10 hover:text-primary transition-all duration-300"
               >

@@ -20,18 +20,33 @@ const Auth = () => {
     try {
       if (isLogin) {
         // LOGIN LOGIC
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate('/dashboard');
+
+        // Check if this existing user ever finished onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_complete')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile?.onboarding_complete) {
+          navigate('/dashboard');
+        } else {
+          navigate('/onboarding');
+        }
+
       } else {
         // SIGNUP LOGIC
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { data: { full_name: fullName } }
         });
         if (error) throw error;
-        alert("Check your email for the confirmation link!");
+
+        // After signup, send them straight to the questions!
+        navigate('/onboarding');
       }
     } catch (error: any) {
       alert(error.message);

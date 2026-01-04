@@ -54,7 +54,7 @@ const Navbar = () => {
                 </Button>
               </Link>
 
-              <Link to="/Dashboard">
+              <Link to="/onboarding">
                 <Button size="sm">
                   Get Started
                 </Button>
