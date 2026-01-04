@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "../supabaseClient"; // Make sure path is correct
+import { supabase } from "../lib/supabaseClient"; // Make sure path is correct
 
 const Navbar = () => {
   const [user, setUser] = useState<any>(null);

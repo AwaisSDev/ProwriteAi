@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
