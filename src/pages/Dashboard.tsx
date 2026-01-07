@@ -171,7 +171,7 @@ const Dashboard = () => {
                 {activeTab === 'writer' && (
                     <div className="flex-1 flex flex-col md:flex-row w-full animate-in fade-in duration-500">
                         {/* INPUT SECTION */}
-                        <section className="flex-1 p-10 overflow-y-auto bg-white border-r border-slate-100">
+                        <section className="flex-1 p-10 overflow-y-auto bg-white border-r border-slate-100 pb-24 md:pb-10">
                             <h1 className="text-2xl font-bold text-slate-800 mb-8">New Description</h1>
                             <div className="space-y-6">
                                 <div className="space-y-2">
@@ -291,7 +291,7 @@ const Dashboard = () => {
                 )}
 
                 {activeTab === 'history' && (
-                    <div className="flex-1 p-10 bg-white overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex-1 p-10 bg-white overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-10">
                         <h1 className="text-2xl font-bold text-slate-800 mb-8">Generation History</h1>
                         <div className="space-y-4">
                             {history.length === 0 ? (
@@ -318,7 +318,7 @@ const Dashboard = () => {
 
                 {/* SETTINGS (No changes) */}
                 {activeTab === 'settings' && (
-                    <div className="flex-1 p-10 bg-white overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex-1 p-10 bg-white overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-10">
                         <h1 className="text-2xl font-bold text-slate-800 mb-8">Account Settings</h1>
                         <div className="max-w-md space-y-6">
                             <div className="flex items-center gap-4 p-6 bg-indigo-50 rounded-2xl">
@@ -341,6 +341,22 @@ const Dashboard = () => {
                     </div>
                 )}
             </main>
+
+            {/* MOBILE NAVIGATION */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 flex justify-around z-50">
+                <button onClick={() => setActiveTab('writer')} className={`flex flex-col items-center gap-1 ${activeTab === 'writer' ? 'text-indigo-600' : 'text-slate-400'}`}>
+                    <Layout size={20} />
+                    <span className="text-[10px] font-bold">Writer</span>
+                </button>
+                <button onClick={() => setActiveTab('history')} className={`flex flex-col items-center gap-1 ${activeTab === 'history' ? 'text-indigo-600' : 'text-slate-400'}`}>
+                    <History size={20} />
+                    <span className="text-[10px] font-bold">History</span>
+                </button>
+                <button onClick={() => setActiveTab('settings')} className={`flex flex-col items-center gap-1 ${activeTab === 'settings' ? 'text-indigo-600' : 'text-slate-400'}`}>
+                    <Settings size={20} />
+                    <span className="text-[10px] font-bold">Settings</span>
+                </button>
+            </nav>
         </div>
     );
 };
