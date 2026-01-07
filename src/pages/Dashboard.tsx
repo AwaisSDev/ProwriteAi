@@ -254,7 +254,13 @@ const Dashboard = () => {
 
                         {/* RESULT SECTION - Only show when active */}
                         {(result || isLoading) && (
-                            <section className="fixed bottom-0 left-0 right-0 md:relative md:flex-[1.2] p-6 md:p-10 bg-[#F8F9FC] flex flex-col h-[85vh] md:h-full overflow-hidden transition-transform duration-500 ease-in-out md:translate-y-0 rounded-t-[30px] md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none z-40 border-t border-slate-200 md:border-t-0 md:bg-[#F8F9FC]">
+                            <section
+                                onTouchStart={handleTouchStart}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handleTouchEnd}
+                                className="fixed bottom-0 left-0 right-0 md:relative md:flex-[1.2] p-6 md:p-10 bg-[#F8F9FC] flex flex-col h-[85vh] md:h-full overflow-hidden transition-transform duration-500 ease-in-out md:translate-y-0 rounded-t-[30px] md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none z-40 border-t border-slate-200 md:border-t-0 md:bg-[#F8F9FC]"
+                                style={touchStart && touchCurrent && (touchCurrent - touchStart > 0) ? { transform: `translateY(${touchCurrent - touchStart}px)` } : {}}
+                            >
 
                                 <div className="md:hidden w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-6" /> {/* Mobile Drag Handle */}
 
