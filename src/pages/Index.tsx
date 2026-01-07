@@ -11,7 +11,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>ProwriteAi - AI-Powered E-commerce Product Descriptions</title>
+        <title>ProwriteAi</title>
         <meta
           name="description"
           content="Generate high-converting product descriptions in seconds with ProwriteAi. Our AI understands your brand voice and creates compelling copy that sells."
