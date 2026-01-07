@@ -33,7 +33,7 @@ const HeroSection = () => {
 
         {/* CTA Buttons */}
         <div className="animate-fade-in-up opacity-0 delay-300 flex flex-col sm:flex-row gap-4">
-          <a href="#demo">
+          <a href="/onboarding">
             <Button
               variant="hero"
               size="lg"

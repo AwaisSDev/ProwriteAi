@@ -18,24 +18,13 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      let authUser = null;
+
       if (isLogin) {
         // LOGIN LOGIC
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-
-        // Check if this existing user ever finished onboarding
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_complete')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profile?.onboarding_complete) {
-          navigate('/dashboard');
-        } else {
-          navigate('/onboarding');
-        }
-
+        authUser = data.user;
       } else {
         // SIGNUP LOGIC
         const { data, error } = await supabase.auth.signUp({
@@ -44,10 +33,37 @@ const Auth = () => {
           options: { data: { full_name: fullName } }
         });
         if (error) throw error;
-
-        // After signup, send them straight to the questions!
-        navigate('/onboarding');
+        authUser = data.user;
       }
+
+      if (authUser) {
+        // CHECK ONBOARDING STATUS
+        const pendingData = localStorage.getItem('pending_onboarding');
+
+        if (pendingData) {
+          // If we have pending onboarding answers, save them now!
+          const onboardingData = JSON.parse(pendingData);
+          onboardingData.id = authUser.id; // Attach ID
+
+          await supabase.from('profiles').upsert(onboardingData);
+          localStorage.removeItem('pending_onboarding'); // Clean up
+          navigate('/dashboard');
+        } else {
+          // Normal check
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_complete')
+            .eq('id', authUser.id)
+            .single();
+
+          if (profile?.onboarding_complete) {
+            navigate('/dashboard');
+          } else {
+            navigate('/onboarding');
+          }
+        }
+      }
+
     } catch (error: any) {
       alert(error.message);
     } finally {

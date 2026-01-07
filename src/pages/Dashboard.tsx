@@ -126,6 +126,30 @@ const Dashboard = () => {
         }
     };
 
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchCurrent, setTouchCurrent] = useState<number | null>(null);
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStart(e.targetTouches[0].clientY);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setTouchCurrent(e.targetTouches[0].clientY);
+    };
+
+    const handleTouchEnd = () => {
+        if (!touchStart || !touchCurrent) return;
+        const distance = touchCurrent - touchStart;
+        const isDownSwipe = distance > 100; // Threshold
+
+        if (isDownSwipe) {
+            setResult(""); // Close it
+            // Optional: You could add logic here to keep it open but minimized
+        }
+        setTouchStart(null);
+        setTouchCurrent(null);
+    };
+
     return (
         <div className="flex h-screen bg-[#F9FAFB] text-slate-900 overflow-hidden font-sans">
             {/* SIDEBAR (No changes) */}
@@ -172,6 +196,17 @@ const Dashboard = () => {
                     <div className="flex-1 flex flex-col md:flex-row w-full animate-in fade-in duration-500">
                         {/* INPUT SECTION */}
                         <section className="flex-1 p-10 overflow-y-auto bg-white border-r border-slate-100 pb-24 md:pb-10">
+                            {/* MOBILE CREDITS DISPLAY */}
+                            <div className="md:hidden mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white shadow-lg flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-0.5">Available Credits</p>
+                                    <p className="text-2xl font-bold leading-none">{credits}</p>
+                                </div>
+                                <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                    <Coins size={20} className="text-white" />
+                                </div>
+                            </div>
+
                             <h1 className="text-2xl font-bold text-slate-800 mb-8">New Description</h1>
                             <div className="space-y-6">
                                 <div className="space-y-2">
@@ -217,76 +252,77 @@ const Dashboard = () => {
                             </div>
                         </section>
 
-                        {/* RESULT SECTION (No changes to formatting) */}
-                        <section className="flex-[1.2] p-10 bg-[#F8F9FC] flex flex-col h-full overflow-hidden">
-                            <h2 className="text-xl font-bold text-slate-800 mb-6">AI Result</h2>
-                            <div className="flex-1 bg-white border border-slate-200 rounded-[24px] shadow-sm p-8 flex flex-col relative overflow-hidden">
-                                <div className="flex-1 overflow-y-auto pr-2 flex flex-col items-center justify-center h-full">
-                                    {!isLoading && !result && (
-                                        <div className="flex flex-col items-center justify-center text-center">
-                                            <Sparkles className="w-12 h-12 text-slate-200 mb-4" />
-                                            <h3 className="text-lg font-medium text-slate-700 italic">Ready to write...</h3>
-                                        </div>
-                                    )}
+                        {/* RESULT SECTION - Only show when active */}
+                        {(result || isLoading) && (
+                            <section className="fixed bottom-0 left-0 right-0 md:relative md:flex-[1.2] p-6 md:p-10 bg-[#F8F9FC] flex flex-col h-[85vh] md:h-full overflow-hidden transition-transform duration-500 ease-in-out md:translate-y-0 rounded-t-[30px] md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none z-40 border-t border-slate-200 md:border-t-0 md:bg-[#F8F9FC]">
 
-                                    {isLoading && (
-                                        <div className="flex flex-col items-center justify-center space-y-8 w-full">
-                                            <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl shadow-indigo-200">
-                                                <Sparkles className="text-white w-8 h-8" />
-                                            </div>
-                                            <div className="w-full max-w-[240px] space-y-4">
-                                                {[{ s: 1, t: "SEO Analysis" }, { s: 2, t: "Tone Refinement" }, { s: 3, t: "Final Polish" }].map((item) => (
-                                                    <div key={item.s} className={`flex items-center gap-4 transition-all duration-700 ${step >= item.s ? 'opacity-100' : 'opacity-10'}`}>
-                                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > item.s ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
-                                                            {step > item.s ? "✓" : item.s}
+                                <div className="md:hidden w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-6" /> {/* Mobile Drag Handle */}
+
+                                <h2 className="text-xl font-bold text-slate-800 mb-6 hidden md:block">AI Result</h2>
+                                <div className="flex-1 bg-white border border-slate-200 rounded-[24px] shadow-sm p-8 flex flex-col relative overflow-hidden">
+                                    <div className="flex-1 overflow-y-auto pr-2 flex flex-col items-center justify-center h-full">
+
+                                        {/* LOADING STATE */}
+                                        {isLoading && (
+                                            <div className="flex flex-col items-center justify-center space-y-8 w-full">
+                                                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl shadow-indigo-200">
+                                                    <Sparkles className="text-white w-8 h-8" />
+                                                </div>
+                                                <div className="w-full max-w-[240px] space-y-4">
+                                                    {[{ s: 1, t: "SEO Analysis" }, { s: 2, t: "Tone Refinement" }, { s: 3, t: "Final Polish" }].map((item) => (
+                                                        <div key={item.s} className={`flex items-center gap-4 transition-all duration-700 ${step >= item.s ? 'opacity-100' : 'opacity-10'}`}>
+                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > item.s ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
+                                                                {step > item.s ? "✓" : item.s}
+                                                            </div>
+                                                            <span className={`text-sm font-bold ${step === item.s ? 'text-indigo-600' : 'text-slate-400'}`}>{item.t}</span>
                                                         </div>
-                                                        <span className={`text-sm font-bold ${step === item.s ? 'text-indigo-600' : 'text-slate-400'}`}>{item.t}</span>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {!isLoading && result && (
-                                        <div className="w-full h-full animate-in fade-in zoom-in-95 duration-1000 relative">
-                                            <button
-                                                onClick={() => navigator.clipboard.writeText(result)}
-                                                className="absolute top-0 right-0 p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition-all z-10"
-                                            >
-                                                <Copy size={16} />
-                                            </button>
-                                            <div className="p-8 bg-indigo-50/20 border border-indigo-100 rounded-[20px] text-slate-700 shadow-sm overflow-y-auto max-h-full w-full">
-                                                {result.split('\n').map((line, i) => {
-                                                    const trimmedLine = line.trim();
-                                                    if (!trimmedLine) return null;
-                                                    const match = trimmedLine.match(/^(TITLE|DESCRIPTION|FEATURES|TAGS):?\s*(.*)/i);
-                                                    if (match) {
-                                                        return (
-                                                            <div key={i} className="mt-6 mb-2 first:mt-0">
-                                                                <div className="mb-2">
-                                                                    <span className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-md font-black tracking-widest uppercase inline-block">{match[1].toUpperCase()}</span>
+                                        {/* RESULT STATE */}
+                                        {!isLoading && result && (
+                                            <div className="w-full h-full animate-in fade-in zoom-in-95 duration-1000 relative">
+                                                <button
+                                                    onClick={() => navigator.clipboard.writeText(result)}
+                                                    className="absolute top-0 right-0 p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition-all z-10"
+                                                >
+                                                    <Copy size={16} />
+                                                </button>
+                                                <div className="p-8 bg-indigo-50/20 border border-indigo-100 rounded-[20px] text-slate-700 shadow-sm overflow-y-auto max-h-full w-full">
+                                                    {result.split('\n').map((line, i) => {
+                                                        const trimmedLine = line.trim();
+                                                        if (!trimmedLine) return null;
+                                                        const match = trimmedLine.match(/^(TITLE|DESCRIPTION|FEATURES|TAGS):?\s*(.*)/i);
+                                                        if (match) {
+                                                            return (
+                                                                <div key={i} className="mt-6 mb-2 first:mt-0">
+                                                                    <div className="mb-2">
+                                                                        <span className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-md font-black tracking-widest uppercase inline-block">{match[1].toUpperCase()}</span>
+                                                                    </div>
+                                                                    {match[2] && <div className="text-slate-600 leading-relaxed mb-4">{match[2]}</div>}
                                                                 </div>
-                                                                {match[2] && <div className="text-slate-600 leading-relaxed mb-4">{match[2]}</div>}
-                                                            </div>
-                                                        );
-                                                    }
-                                                    if (trimmedLine.includes('#')) {
-                                                        return (
-                                                            <div key={i} className="flex flex-wrap gap-2 mt-3">
-                                                                {trimmedLine.split(/\s+/).filter(t => t.startsWith('#')).map((tag, idx) => (
-                                                                    <span key={idx} className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-lg">{tag}</span>
-                                                                ))}
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return <div key={i} className={`text-slate-600 leading-relaxed ${/^\d\./.test(trimmedLine) ? 'ml-4 font-medium mb-1' : 'mb-4'}`}>{trimmedLine}</div>;
-                                                })}
+                                                            );
+                                                        }
+                                                        if (trimmedLine.includes('#')) {
+                                                            return (
+                                                                <div key={i} className="flex flex-wrap gap-2 mt-3">
+                                                                    {trimmedLine.split(/\s+/).filter(t => t.startsWith('#')).map((tag, idx) => (
+                                                                        <span key={idx} className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-lg">{tag}</span>
+                                                                    ))}
+                                                                </div>
+                                                            );
+                                                        }
+                                                        return <div key={i} className={`text-slate-600 leading-relaxed ${/^\d\./.test(trimmedLine) ? 'ml-4 font-medium mb-1' : 'mb-4'}`}>{trimmedLine}</div>;
+                                                    })}
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </section>
+                            </section>
+                        )}
                     </div>
                 )}
 
