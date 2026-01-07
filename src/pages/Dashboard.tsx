@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy } from "lucide-react";
+import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy, Coins } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
@@ -16,6 +16,7 @@ const Dashboard = () => {
     const [productFeatures, setProductFeatures] = useState("");
     const [tone, setTone] = useState("Professional");
     const [history, setHistory] = useState<any[]>([]);
+    const [credits, setCredits] = useState<number>(0);
 
     // 1. AUTH & INITIAL FETCH
     useEffect(() => {
@@ -26,6 +27,17 @@ const Dashboard = () => {
             } else {
                 setUser(user);
                 fetchHistory(user.id); // Load from DB
+
+                // Fetch Credits
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('credits')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    setCredits(profile.credits);
+                }
             }
         };
         checkUser();
@@ -55,9 +67,14 @@ const Dashboard = () => {
         setResult("");
 
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+
             const apiPromise = fetch("/api/generate", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session?.access_token}`
+                },
                 body: JSON.stringify({ name: productName, features: productFeatures, tone: tone }),
             });
 
@@ -67,11 +84,15 @@ const Dashboard = () => {
             setStep(4); await delay(1000);
 
             const response = await apiPromise;
-            if (!response.ok) throw new Error("API Failed");
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "API Failed");
+            }
 
             const data = await response.json();
             const finalResult = data.description;
             setResult(finalResult);
+            setCredits(prev => prev - 1); // Deduct credit locally
 
             // 3. SAVE TO SUPABASE
             const { data: savedData, error } = await supabase
@@ -89,9 +110,9 @@ const Dashboard = () => {
                 setHistory([savedData[0], ...history]); // Update UI
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
-            setResult("Error: AI took too long or API is down.");
+            setResult(error.message || "Error: AI took too long or API is down.");
         } finally {
             setIsLoading(false);
             setStep(0);
@@ -119,6 +140,20 @@ const Dashboard = () => {
                 </Link>
 
                 <nav className="flex-1 space-y-1">
+                    <div className="mb-6 px-2">
+                        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full blur-xl -mr-8 -mt-8 transition-transform group-hover:scale-150" />
+                            <div className="relative z-10 flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">Available Credits</p>
+                                    <p className="text-2xl font-bold">{credits}</p>
+                                </div>
+                                <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                                    <Coins size={20} className="text-white" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <button onClick={() => setActiveTab('writer')} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all font-medium ${activeTab === 'writer' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50'}`}>
                         <Layout size={18} /> Writer
                     </button>
