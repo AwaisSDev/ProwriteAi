@@ -11,10 +11,10 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>DescribeAI - AI-Powered E-commerce Product Descriptions</title>
-        <meta 
-          name="description" 
-          content="Generate high-converting product descriptions in seconds with DescribeAI. Our AI understands your brand voice and creates compelling copy that sells." 
+        <title>ProwriteAi - AI-Powered E-commerce Product Descriptions</title>
+        <meta
+          name="description"
+          content="Generate high-converting product descriptions in seconds with ProwriteAi. Our AI understands your brand voice and creates compelling copy that sells."
         />
       </Helmet>
       <div className="min-h-screen bg-background">
