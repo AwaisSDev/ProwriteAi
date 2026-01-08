@@ -52,7 +52,7 @@ const HeroSection = () => {
         </div>
 
         {/* Trust badges */}
-        <div className="animate-fade-in-up opacity-0 delay-400 mt-16 flex flex-col items-center gap-4">
+        <div className="animate-fade-in-up opacity-0 delay-400 mt-16 pb-12 sm:pb-0 flex flex-col items-center gap-4">
           <p className="text-sm text-muted-foreground">Trusted by 10,000+ e-commerce brands</p>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1">
