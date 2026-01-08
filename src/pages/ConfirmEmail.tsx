@@ -13,19 +13,13 @@ const ConfirmEmail = () => {
     const checkVerification = async () => {
         setLoading(true);
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            // Use getUser to fetch fresh user data from the server
+            const { data: { user } } = await supabase.auth.getUser();
 
-            // If we have a session, and email_confirmed_at is set, we are good.
-            if (session?.user?.email_confirmed_at) {
+            if (user?.email_confirmed_at) {
                 setIsVerified(true);
             } else {
-                // Try refreshing the session to get the latest data
-                const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
-                if (refreshedSession?.user?.email_confirmed_at) {
-                    setIsVerified(true);
-                } else {
-                    setIsVerified(false);
-                }
+                setIsVerified(false);
             }
         } catch (error) {
             console.error("Error checking verification:", error);
