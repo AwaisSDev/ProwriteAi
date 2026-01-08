@@ -19,6 +19,8 @@ const ConfirmEmail = () => {
             if (user?.email_confirmed_at) {
                 setIsVerified(true);
             } else {
+                // Try refreshing session occasionally to sync with server identity
+                await supabase.auth.refreshSession();
                 setIsVerified(false);
             }
         } catch (error) {
