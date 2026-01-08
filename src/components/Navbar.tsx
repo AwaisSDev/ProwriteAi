@@ -49,7 +49,7 @@ const Navbar = () => {
             /* SHOW THIS WHEN LOGGED OUT */
             <>
               <Link to="/auth">
-                <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+                <Button variant="ghost" size="sm" className="inline-flex">
                   Log in
                 </Button>
               </Link>

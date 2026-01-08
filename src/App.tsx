@@ -7,6 +7,7 @@ import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import ConfirmEmail from "./pages/ConfirmEmail";
 import Dashboard from "./pages/Dashboard";
 import Onboarding from "./pages/Onboarding";
 
@@ -25,6 +26,7 @@ const App = () => (
 
             {/* Login / Signup */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/confirm-email" element={<ConfirmEmail />} />
 
             {/* Figma-Style Onboarding Flow */}
             <Route path="/onboarding" element={<Onboarding />} />

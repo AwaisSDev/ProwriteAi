@@ -46,6 +46,11 @@ const Auth = () => {
         });
         if (error) throw error;
         authUser = data.user;
+
+        if (data.user && !data.session) {
+          navigate('/confirm-email');
+          return;
+        }
       }
 
       if (authUser) {

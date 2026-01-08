@@ -4,9 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 // Initialize Supabase Client
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).send({ message: 'Only POST requests allowed' });
