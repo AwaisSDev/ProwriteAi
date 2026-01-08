@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User, ArrowRight, Github, Chrome } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient'; // Make sure this path is correct
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -12,6 +13,17 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+
+  // Check for mode query param on mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const mode = params.get('mode');
+    if (mode === 'signup') {
+      setIsLogin(false);
+    } else if (mode === 'login') {
+      setIsLogin(true);
+    }
+  }, [location]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

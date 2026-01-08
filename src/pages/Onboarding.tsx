@@ -77,7 +77,7 @@ export default function Onboarding() {
                 // Not logged in? Save to local storage and go to auth
                 console.log("User not logged in, saving to local storage...");
                 localStorage.setItem('pending_onboarding', JSON.stringify(onboardingData));
-                navigate('/auth');
+                navigate('/auth?mode=signup');
                 return;
             }
 
