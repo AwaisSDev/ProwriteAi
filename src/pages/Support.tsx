@@ -34,10 +34,10 @@ export default function Support() {
             const userPlan = profile?.plan || "Free";
             setPlan(userPlan);
 
-            // Add 3s delay for premium feel
+            // Add 2s delay for premium feel
             setTimeout(() => {
                 setIsLoadingProfile(false);
-            }, 3000);
+            }, 1500);
 
             if (userPlan !== "Free") {
                 fetchTickets(user.id);
@@ -79,7 +79,9 @@ export default function Support() {
                     subject,
                     message,
                     status: 'Open',
-                    priority: plan === 'Pro' ? 'Urgent' : 'High'
+                    priority: plan === 'Pro' ? 'Urgent' : 'High',
+                    user_email: user.email,
+                    user_name: user.user_metadata?.full_name || "User"
                 }
             ]);
 
@@ -89,9 +91,11 @@ export default function Support() {
         if (error) {
             console.error("Support Ticket Error:", error);
 
-            // Catch table not found errors (Postgres codes or descriptive messages)
+            // Catch table or column missing errors
             const isMissingTable = error.code === '42P01' ||
+                error.code === '42703' ||
                 error.message?.includes('relation "support_tickets" does not exist') ||
+                error.message?.includes('column') ||
                 error.message?.includes('database error');
 
             if (isMissingTable) {
@@ -103,6 +107,8 @@ export default function Support() {
                     message,
                     status: 'Open',
                     priority: plan === 'Pro' ? 'Urgent' : 'High',
+                    user_email: user.email,
+                    user_name: user.user_metadata?.full_name || "User",
                     created_at: new Date().toISOString()
                 }, ...tickets]);
             } else {
@@ -121,12 +127,11 @@ export default function Support() {
     if (isLoadingProfile) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center transition-colors duration-300">
-                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce">
-                    <Shield className="text-white w-8 h-8" />
+                <div className="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl md:rounded-[32px] flex items-center justify-center animate-bounce">
+                    <Sparkles className="text-white w-8 h-8 md:w-12 md:h-12" />
                 </div>
-                <div className="mt-8 flex flex-col items-center">
-                    <p className="text-[10px] font-black text-indigo-500/50 uppercase tracking-[0.5em] animate-pulse">Verifying</p>
-                    <div className="mt-6 w-24 h-1 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden">
+                <div className="mt-8 md:mt-12 flex flex-col items-center">
+                    <div className="w-24 md:w-40 h-1 md:h-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-600 animate-progress-once origin-left w-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
                     </div>
                 </div>
@@ -137,7 +142,7 @@ export default function Support() {
                         100% { transform: scaleX(1); }
                     }
                     .animate-progress-once {
-                        animation: progressOnce 3s linear forwards;
+                        animation: progressOnce 2s linear forwards;
                     }
                 `}} />
             </div>

@@ -26,6 +26,7 @@ const Dashboard = () => {
     const [plan, setPlan] = useState<string>("Free");
     const [isToneDropdownOpen, setIsToneDropdownOpen] = useState(false);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [showEmailBadge, setShowEmailBadge] = useState(false);
 
     // 1. AUTH & INITIAL FETCH
     useEffect(() => {
@@ -49,10 +50,10 @@ const Dashboard = () => {
                     setPlan(profile.plan || "Free");
                 }
 
-                // Add 3s delay for premium feel
+                // Add 2s delay for premium feel
                 setTimeout(() => {
                     setIsInitialLoading(false);
-                }, 3000);
+                }, 1300);
             }
         };
         checkUser();
@@ -168,12 +169,11 @@ const Dashboard = () => {
     if (isInitialLoading) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center transition-colors duration-300">
-                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce">
-                    <Sparkles className="text-white w-8 h-8" />
+                <div className="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl md:rounded-[32px] flex items-center justify-center animate-bounce">
+                    <Sparkles className="text-white w-8 h-8 md:w-12 md:h-12" />
                 </div>
-                <div className="mt-8 flex flex-col items-center">
-                    <p className="text-[10px] font-black text-indigo-500/50 uppercase tracking-[0.5em] animate-pulse">Initializing</p>
-                    <div className="mt-6 w-24 h-1 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden">
+                <div className="mt-8 md:mt-12 flex flex-col items-center">
+                    <div className="w-24 md:w-40 h-1 md:h-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden">
                         <div className="h-full bg-indigo-600 animate-progress-once origin-left w-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
                     </div>
                 </div>
@@ -184,7 +184,7 @@ const Dashboard = () => {
                         100% { transform: scaleX(1); }
                     }
                     .animate-progress-once {
-                        animation: progressOnce 3s linear forwards;
+                        animation: progressOnce 2s linear forwards;
                     }
                 `}} />
             </div>
@@ -521,52 +521,54 @@ const Dashboard = () => {
 
                 {activeTab === 'history' && (
                     <div className="flex-1 p-10 bg-card overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-10 relative transition-colors">
-                        <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-8 transition-colors tracking-tight">Generation History</h1>
+                        <div className={`transition-all duration-700 ${plan === 'Free' ? 'blur-[4px] pointer-events-none select-none overflow-hidden' : ''}`}>
+                            <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-8 transition-colors tracking-tight">Generation History</h1>
 
-                        <div className={`space-y-4 ${plan === 'Free' ? 'blur-md pointer-events-none select-none' : ''}`}>
-                            {history.length === 0 ? (
-                                <p className="text-slate-400 italic">No magic saved in your account yet...</p>
-                            ) : (
-                                (plan === 'Free' ? [...history, ...history, ...history].slice(0, 6) : history).map((item, idx) => (
-                                    <button
-                                        key={item.id || idx}
-                                        onClick={() => {
-                                            setProductName(item.product_name);
-                                            setResult(item.result_text);
-                                        }}
-                                        className="w-full text-left p-5 border border-border rounded-2xl flex justify-between items-center group bg-card hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer active:scale-[0.99]"
-                                    >
-                                        <div className="flex-1">
-                                            <h3 className="font-bold text-foreground dark:text-white group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{item.product_name || "Premium Generation"}</h3>
-                                            <p className="text-sm text-slate-400">Generated on {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recently'}</p>
-                                        </div>
+                            <div className="space-y-4">
+                                {history.length === 0 ? (
+                                    <p className="text-slate-400 italic">No magic saved in your account yet...</p>
+                                ) : (
+                                    (plan === 'Free' ? [...history, ...history, ...history].slice(0, 6) : history).map((item, idx) => (
                                         <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                deleteHistoryItem(item.id);
+                                            key={item.id || idx}
+                                            onClick={() => {
+                                                setProductName(item.product_name);
+                                                setResult(item.result_text);
                                             }}
-                                            className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
+                                            className="w-full text-left p-5 border border-border rounded-2xl flex justify-between items-center group bg-card hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer active:scale-[0.99]"
                                         >
-                                            <Trash2 size={18} />
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-foreground dark:text-white group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{item.product_name || "Premium Generation"}</h3>
+                                                <p className="text-sm text-slate-400">Generated on {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recently'}</p>
+                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteHistoryItem(item.id);
+                                                }}
+                                                className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </button>
-                                    </button>
-                                ))
-                            )}
+                                    ))
+                                )}
+                            </div>
                         </div>
 
                         {plan === 'Free' && (
-                            <div className="absolute inset-x-0 bottom-0 top-[120px] flex items-center justify-center p-6 bg-white/30 backdrop-blur-[2px] z-10">
-                                <div className="max-w-sm w-full bg-white rounded-[32px] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 text-center animate-in zoom-in duration-500 delay-200">
-                                    <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                                        <Lock className="text-indigo-600 w-8 h-8" />
+                            <div className="absolute inset-0 flex items-center justify-center p-6 bg-slate-900/5 dark:bg-slate-900/20 backdrop-blur-[4px] z-10 transition-all duration-500">
+                                <div className="max-w-sm w-full bg-white dark:bg-slate-900 rounded-[32px] p-8 shadow-[0_20px_80px_rgba(0,0,0,0.2)] border border-slate-100 dark:border-indigo-500/10 text-center animate-in zoom-in duration-500">
+                                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                        <Lock className="text-indigo-600 dark:text-indigo-400 w-8 h-8" />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-slate-900 mb-3">Unlock Your History</h2>
-                                    <p className="text-slate-500 mb-8 leading-relaxed">
+                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Unlock Your History</h2>
+                                    <p className="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed text-sm">
                                         Free users can't save generations. Upgrade to Plus or Pro to store and manage your AI creations forever.
                                     </p>
                                     <button
                                         onClick={() => navigate('/pricing')}
-                                        className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold shadow-lg dark:shadow-none shadow-indigo-200 hover:scale-[1.02] transition-transform active:scale-95 flex items-center justify-center gap-2"
+                                        className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-500/25 hover:scale-[1.02] transition-transform active:scale-95 flex items-center justify-center gap-2"
                                     >
                                         <Zap size={18} className="fill-current" />
                                         Upgrade Now
@@ -592,7 +594,12 @@ const Dashboard = () => {
                                 <div>
                                     <p className="font-bold text-slate-800 dark:text-indigo-400">{user?.user_metadata?.full_name || "User"}</p>
                                     <div className="flex flex-wrap items-center gap-2 max-w-full">
-                                        <p className="text-sm text-indigo-600 font-medium truncate max-w-[120px] xs:max-w-[150px] md:max-w-none">{user?.email || "No email found"}</p>
+                                        <button
+                                            onClick={() => setShowEmailBadge(true)}
+                                            className="text-sm text-indigo-600 font-medium truncate max-w-[120px] xs:max-w-[150px] md:max-w-none text-left"
+                                        >
+                                            {user?.email || "No email found"}
+                                        </button>
                                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${plan === 'Free' ? 'bg-slate-200 text-slate-600' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'}`}>
                                             {plan}
                                         </span>
@@ -617,23 +624,38 @@ const Dashboard = () => {
                                         <ArrowRight size={16} className="text-indigo-600 dark:text-indigo-400" />
                                     </button>
                                 )}
-                                <button onClick={handleLogout} className="w-full text-left p-4 rounded-xl border border-red-100 dark:border-red-900/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-medium flex items-center gap-2">
-                                    <LogOut size={18} /> Logout
-                                </button>
-
                                 <button
                                     onClick={toggleTheme}
-                                    className="w-full text-left p-4 rounded-xl border border-slate-200 dark:border-indigo-500/20 hover:border-indigo-300 dark:hover:border-indigo-400 bg-transparent dark:bg-indigo-900/5 transition-all font-medium text-slate-600 dark:text-indigo-300/80 flex items-center justify-between"
+                                    className="md:hidden w-full text-left p-4 rounded-xl border border-slate-200 dark:border-indigo-500/20 hover:border-indigo-300 dark:hover:border-indigo-400 bg-transparent dark:bg-indigo-900/5 transition-all font-medium text-slate-600 dark:text-indigo-300/80 flex items-center justify-between"
                                 >
                                     <div className="flex items-center gap-3">
                                         {theme === 'dark' ? <Moon size={18} className="text-yellow-500" /> : <Sun size={18} className="text-orange-500" />}
-                                        <span>Appearance: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                                        <span className="font-bold">Dark Mode</span>
                                     </div>
                                     <div className={`w-10 h-5 rounded-full p-1 transition-colors ${theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-200'}`}>
                                         <div className={`w-3 h-3 bg-white rounded-full transition-transform ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </div>
                                 </button>
+                                <button onClick={handleLogout} className="w-full text-left p-4 rounded-xl border border-red-100 dark:border-red-900/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-medium flex items-center gap-2">
+                                    <LogOut size={18} /> Logout
+                                </button>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* FLOATING EMAIL VIEWER (MOBILE) */}
+                {showEmailBadge && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm md:hidden animate-in fade-in duration-300" onClick={() => setShowEmailBadge(false)}>
+                        <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] border border-indigo-500/20 shadow-2xl max-w-xs w-full animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+                            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">Logged in as</p>
+                            <p className="text-lg font-bold text-foreground break-all mb-6">{user?.email}</p>
+                            <button
+                                onClick={() => setShowEmailBadge(false)}
+                                className="w-full bg-indigo-600 text-white font-bold py-3 rounded-2xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-all"
+                            >
+                                Got it
+                            </button>
                         </div>
                     </div>
                 )}

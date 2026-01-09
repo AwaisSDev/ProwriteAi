@@ -176,8 +176,18 @@ export default function AdminSupport() {
                                                     {ticket.status}
                                                 </span>
                                                 <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                                                    ID: {ticket.user_id.substring(0, 8)}
+                                                    ID: {ticket.user_id?.substring(0, 8) || "GHOST"}
                                                 </span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">
+                                                    <User size={12} className="text-indigo-600" />
+                                                    {ticket.user_name || "Unknown User"}
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 px-3 py-1 rounded-lg">
+                                                    <Mail size={12} />
+                                                    {ticket.user_email || "No Email"}
+                                                </div>
                                             </div>
                                             <div className="text-slate-400 text-xs font-medium flex items-center gap-1">
                                                 <Clock size={12} /> {new Date(ticket.created_at).toLocaleDateString()}
