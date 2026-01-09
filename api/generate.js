@@ -28,10 +28,10 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: "Invalid or expired token" });
         }
 
-        // 2. Check Credits
+        // 2. Check Credits & Plan
         const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('credits')
+            .select('credits, plan')
             .eq('id', user.id)
             .single();
 
@@ -39,6 +39,8 @@ export default async function handler(req, res) {
             console.error("Profile fetch error:", profileError);
             return res.status(500).json({ error: "Failed to fetch user profile" });
         }
+
+        const userPlan = profile.plan || 'Free';
 
         if (profile.credits < 1) {
             return res.status(403).json({ error: "Insufficient credits. Please upgrade or top up." });
@@ -56,16 +58,62 @@ export default async function handler(req, res) {
         }
 
         // 4. Generate Content
-        const { name, features, tone } = req.body; // Added 'tone' to destructuring as it was passed in frontend
+        const { name, features, tone } = req.body;
+
+        // Tiered System Prompts
+        let systemPrompt = "";
+        const commonRules = `STRICT RULES: Never use em-dashes (—). No stars. No robotic language like "Introducing" or "Are you looking for". Use standard sentence case.`;
+
+        if (userPlan === 'Pro') {
+            systemPrompt = `You are a World-Class Direct Response Copywriter & SEO Strategist. 
+            TONE: ${tone || 'Professional'}.
+            ${commonRules}
+            
+            SEO LEVEL: MASTER (Way Better).
+            - Utilize LSI (Latent Semantic Indexing) keywords related to the product.
+            - Optimize for "Search Intent" and "Featured Snippets".
+            - Include 15 hyper-targeted SEO tags/hashtags.
+            
+            EXACT FORMAT:
+            TITLE: [High-CTR Psychological Hook]
+            DESCRIPTION: [3-4 sentence storytelling paragraph focused on transformation]
+            FEATURES: [5 Benefit-first bullet points: 1., 2.. 3.. 4.. 5.]
+            TAGS: [15 Search-optimized hashtags]`;
+        } else if (userPlan === 'Plus') {
+            systemPrompt = `You are an Elite Copywriter and SEO Expert. 
+            TONE: ${tone || 'Professional'}.
+            ${commonRules}
+            
+            SEO LEVEL: ADVANCED (Better).
+            - Focus on high-conversion keywords.
+            - Include 10 high-volume SEO hashtags.
+            
+            EXACT FORMAT:
+            TITLE: [Catchy Hook]
+            DESCRIPTION: [Effective storytelling paragraph]
+            FEATURES: [5 punchy bullet points: 1., 2.. 3.. 4.. 5.]
+            TAGS: [10 High-volume hashtags]`;
+        } else {
+            systemPrompt = `You are an AI Copywriter. 
+            TONE: ${tone || 'Professional'}.
+            ${commonRules}
+            
+            SEO LEVEL: STANDARD.
+            - Include 5 basic SEO hashtags.
+            
+            EXACT FORMAT:
+            TITLE: [Catchy Title]
+            DESCRIPTION: [Simple paragraph]
+            FEATURES: [3 simple features: 1., 2.. 3.]
+            TAGS: [5 basic hashtags]`;
+        }
+
         const response = await groq.chat.completions.create({
             messages: [
-                {
-                    role: "system",
-                    content: `You are an elite copywriter. Tone: ${tone || 'Professional'}. Follow this EXACT format: Write 'TITLE:' then a catchy hook. Write 'DESCRIPTION:' then a paragraph. Write 'FEATURES:' then a numbered list (1., 2., 3.). Write 'TAGS:' then 5 SEO tags starting with #. Use standard sentence case. No stars.`
-                },
+                { role: "system", content: systemPrompt },
                 { role: "user", content: `Product: ${name}. Features: ${features}` }
             ],
-            model: "llama-3.3-70b-versatile",
+            model: userPlan === 'Pro' ? "llama-3.3-70b-versatile" : "llama3-8b-8192",
         });
 
         res.status(200).json({ description: response.choices[0].message.content });
