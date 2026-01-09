@@ -13,6 +13,7 @@ export default function Support() {
     const [message, setMessage] = useState("");
     const [tickets, setTickets] = useState<any[]>([]);
     const [isLoadingTickets, setIsLoadingTickets] = useState(true);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true);
     const [expandedTicket, setExpandedTicket] = useState<any>(null);
 
     useEffect(() => {
@@ -32,6 +33,7 @@ export default function Support() {
 
             const userPlan = profile?.plan || "Free";
             setPlan(userPlan);
+            setIsLoadingProfile(false);
 
             if (userPlan !== "Free") {
                 fetchTickets(user.id);
@@ -111,6 +113,33 @@ export default function Support() {
         setMessage("");
         setIsSubmitting(false);
     };
+
+    if (isLoadingProfile) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center transition-colors duration-300">
+                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl shadow-indigo-200">
+                    <Shield className="text-white w-8 h-8" />
+                </div>
+                <div className="mt-8 flex flex-col items-center">
+                    <p className="text-xs font-black text-indigo-500 uppercase tracking-[0.3em] animate-pulse">Verifying Priority Access</p>
+                    <div className="mt-4 w-32 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-600 animate-progress origin-left w-full" />
+                    </div>
+                </div>
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    @keyframes progress {
+                        0% { transform: scaleX(0); }
+                        50% { transform: scaleX(0.7); }
+                        100% { transform: scaleX(1); }
+                    }
+                    .animate-progress {
+                        animation: progress 2s ease-in-out infinite;
+                    }
+                `}} />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background text-foreground font-sans pb-20 transition-colors duration-300">

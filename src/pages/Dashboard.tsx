@@ -25,6 +25,7 @@ const Dashboard = () => {
     const [credits, setCredits] = useState<number>(0);
     const [plan, setPlan] = useState<string>("Free");
     const [isToneDropdownOpen, setIsToneDropdownOpen] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
 
     // 1. AUTH & INITIAL FETCH
     useEffect(() => {
@@ -47,6 +48,7 @@ const Dashboard = () => {
                     setCredits(profile.credits);
                     setPlan(profile.plan || "Free");
                 }
+                setIsInitialLoading(false);
             }
         };
         checkUser();
@@ -158,6 +160,33 @@ const Dashboard = () => {
         setTouchStart(null);
         setTouchCurrent(null);
     };
+
+    if (isInitialLoading) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center transition-colors duration-300">
+                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl shadow-indigo-200">
+                    <Sparkles className="text-white w-8 h-8" />
+                </div>
+                <div className="mt-8 flex flex-col items-center">
+                    <p className="text-xs font-black text-indigo-500 uppercase tracking-[0.3em] animate-pulse">Syncing Your Playground</p>
+                    <div className="mt-4 w-32 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-600 animate-progress origin-left w-full" />
+                    </div>
+                </div>
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    @keyframes progress {
+                        0% { transform: scaleX(0); }
+                        50% { transform: scaleX(0.7); }
+                        100% { transform: scaleX(1); }
+                    }
+                    .animate-progress {
+                        animation: progress 2s ease-in-out infinite;
+                    }
+                `}} />
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans transition-colors duration-300">

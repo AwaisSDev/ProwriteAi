@@ -77,7 +77,7 @@ export default async function handler(req, res) {
             EXACT FORMAT:
             TITLE: [High-CTR Psychological Hook]
             DESCRIPTION: [3-4 sentence storytelling paragraph focused on transformation]
-            FEATURES: [5 Benefit-first bullet points: 1., 2.. 3.. 4.. 5.]
+            FEATURES: [5 Benefit-first bullet points with a gap line between each: 1., 2.. 3.. 4.. 5.]
             TAGS: [15 Search-optimized hashtags]`;
         } else if (userPlan === 'Plus') {
             systemPrompt = `You are an Elite Copywriter and SEO Expert. 
@@ -91,7 +91,7 @@ export default async function handler(req, res) {
             EXACT FORMAT:
             TITLE: [Catchy Hook]
             DESCRIPTION: [Effective storytelling paragraph]
-            FEATURES: [5 punchy bullet points: 1., 2.. 3.. 4.. 5.]
+            FEATURES: [5 punchy bullet points with a gap line between each: 1., 2.. 3.. 4.. 5.]
             TAGS: [10 High-volume hashtags]`;
         } else {
             systemPrompt = `You are an AI Copywriter. 
@@ -104,7 +104,7 @@ export default async function handler(req, res) {
             EXACT FORMAT:
             TITLE: [Catchy Title]
             DESCRIPTION: [Simple paragraph]
-            FEATURES: [3 simple features: 1., 2.. 3.]
+            FEATURES: [3 simple features with a gap line between each: 1., 2.. 3.]
             TAGS: [5 basic hashtags]`;
         }
 
