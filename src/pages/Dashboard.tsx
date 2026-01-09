@@ -48,7 +48,11 @@ const Dashboard = () => {
                     setCredits(profile.credits);
                     setPlan(profile.plan || "Free");
                 }
-                setIsInitialLoading(false);
+
+                // Add 3s delay for premium feel
+                setTimeout(() => {
+                    setIsInitialLoading(false);
+                }, 3000);
             }
         };
         checkUser();
@@ -164,13 +168,13 @@ const Dashboard = () => {
     if (isInitialLoading) {
         return (
             <div className="min-h-screen bg-background flex flex-col items-center justify-center transition-colors duration-300">
-                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl shadow-indigo-200">
+                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce">
                     <Sparkles className="text-white w-8 h-8" />
                 </div>
                 <div className="mt-8 flex flex-col items-center">
-                    <p className="text-xs font-black text-indigo-500 uppercase tracking-[0.3em] animate-pulse">Syncing Your Playground</p>
-                    <div className="mt-4 w-32 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-600 animate-progress origin-left w-full" />
+                    <p className="text-[10px] font-black text-indigo-500/50 uppercase tracking-[0.5em] animate-pulse">Initializing</p>
+                    <div className="mt-6 w-24 h-1 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-600 animate-progress origin-left w-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
                     </div>
                 </div>
                 <style dangerouslySetInnerHTML={{
