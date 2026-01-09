@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy, Coins, Zap, Lock, Shield, ArrowRight, Sun, Moon } from "lucide-react";
+import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy, Coins, Zap, Lock, Shield, ArrowRight, Sun, Moon, ChevronDown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useTheme } from "next-themes";
@@ -242,7 +242,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-8 transition-colors">New Description</h1>
+                            <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-8 transition-colors tracking-tight">New Description</h1>
                             <div className="space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold uppercase text-slate-400">Product Name</label>
@@ -389,7 +389,7 @@ const Dashboard = () => {
                                 <button
                                     onClick={handleGenerate}
                                     disabled={isLoading}
-                                    className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold transition-all duration-300 disabled:opacity-50 bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg dark:shadow-none hover:scale-105 h-12 rounded-xl px-4"
+                                    className="w-full inline-flex items-center justify-center gap-2 text-sm font-semibold transition-all duration-300 disabled:opacity-50 bg-gradient-to-br from-indigo-600 to-purple-600 text-white shadow-lg dark:shadow-none hover:scale-105 h-14 rounded-2xl px-4"
                                 >
                                     {isLoading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send size={18} />}
                                     {isLoading ? "Analyzing..." : "Generate Magic"}
@@ -398,101 +398,126 @@ const Dashboard = () => {
                         </section>
 
                         {/* RESULT SECTION - Only show when active */}
-                        {(result || isLoading) && (
-                            <section
-                                onTouchStart={handleTouchStart}
-                                onTouchMove={handleTouchMove}
-                                onTouchEnd={handleTouchEnd}
-                                className="fixed bottom-0 left-0 right-0 md:relative md:flex-[1.2] p-6 md:p-10 bg-background flex flex-col h-[85vh] md:h-full overflow-hidden transition-transform duration-500 ease-in-out md:translate-y-0 rounded-t-[30px] md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none z-40 border-t border-border md:border-t-0 md:bg-background"
-                                style={touchStart && touchCurrent && (touchCurrent - touchStart > 0) ? { transform: `translateY(${touchCurrent - touchStart}px)` } : {}}
-                            >
-
-                                <div className="md:hidden w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-6" /> {/* Mobile Drag Handle */}
-
-                                <h2 className="text-xl font-bold text-foreground mb-6 hidden md:block">AI Result</h2>
-                                <div className="flex-1 bg-card border border-border rounded-[24px] shadow-sm p-8 flex flex-col relative overflow-hidden transition-colors">
-                                    <div className="flex-1 overflow-y-auto pr-2 flex flex-col items-center justify-center h-full">
-
-                                        {/* LOADING STATE */}
-                                        {isLoading && (
-                                            <div className="flex flex-col items-center justify-center space-y-8 w-full">
-                                                <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl dark:shadow-none shadow-indigo-200">
-                                                    <Sparkles className="text-white w-8 h-8" />
-                                                </div>
-                                                <div className="w-full max-w-[240px] space-y-4">
-                                                    {[{ s: 1, t: "SEO Analysis" }, { s: 2, t: "Tone Refinement" }, { s: 3, t: "Final Polish" }].map((item) => (
-                                                        <div key={item.s} className={`flex items-center gap-4 transition-all duration-700 ${step >= item.s ? 'opacity-100' : 'opacity-10'}`}>
-                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > item.s ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
-                                                                {step > item.s ? "✓" : item.s}
-                                                            </div>
-                                                            <span className={`text-sm font-bold ${step === item.s ? 'text-indigo-600' : 'text-slate-400'}`}>{item.t}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* RESULT STATE */}
-                                        {!isLoading && result && (
-                                            <div className="w-full h-full animate-in fade-in zoom-in-95 duration-1000 relative">
-                                                <button
-                                                    onClick={() => navigator.clipboard.writeText(result)}
-                                                    className="absolute top-0 right-0 p-2 bg-card border border-border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 transition-all z-10"
-                                                >
-                                                    <Copy size={16} />
-                                                </button>
-                                                <div className="p-8 bg-indigo-50/20 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-500/20 rounded-[20px] text-foreground shadow-sm overflow-y-auto max-h-full w-full">
-                                                    {result.split('\n').map((line, i) => {
-                                                        const trimmedLine = line.trim();
-                                                        if (!trimmedLine) return null;
-                                                        const match = trimmedLine.match(/^(TITLE|DESCRIPTION|FEATURES|TAGS):?\s*(.*)/i);
-                                                        if (match) {
-                                                            return (
-                                                                <div key={i} className="mt-6 mb-2 first:mt-0">
-                                                                    <div className="mb-2">
-                                                                        <span className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-md font-black tracking-widest uppercase inline-block">{match[1].toUpperCase()}</span>
-                                                                    </div>
-                                                                    {match[2] && <div className="text-slate-600 leading-relaxed mb-4">{match[2]}</div>}
-                                                                </div>
-                                                            );
-                                                        }
-                                                        if (trimmedLine.includes('#')) {
-                                                            return (
-                                                                <div key={i} className="flex flex-wrap gap-2 mt-3">
-                                                                    {trimmedLine.split(/\s+/).filter(t => t.startsWith('#')).map((tag, idx) => (
-                                                                        <span key={idx} className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-lg">{tag}</span>
-                                                                    ))}
-                                                                </div>
-                                                            );
-                                                        }
-                                                        return <div key={i} className={`text-slate-600 leading-relaxed ${/^\d\./.test(trimmedLine) ? 'ml-4 font-medium mb-1' : 'mb-4'}`}>{trimmedLine}</div>;
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </section>
-                        )}
                     </div>
+                )}
+
+                {/* RESULT SECTION - Lifted out of tab logic so it shows over any tab */}
+                {(result || isLoading) && (
+                    <section
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                        className="fixed bottom-0 left-0 right-0 md:relative md:flex-[1.2] p-6 md:p-10 bg-background flex flex-col h-[85vh] md:h-full overflow-hidden transition-transform duration-500 ease-in-out md:translate-y-0 rounded-t-[30px] md:rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.1)] md:shadow-none z-40 border-t border-border md:border-t-0 md:bg-background"
+                        style={touchStart && touchCurrent && (touchCurrent - touchStart > 0) ? { transform: `translateY(${touchCurrent - touchStart}px)` } : {}}
+                    >
+
+                        <div className="flex items-center justify-between mb-6 md:hidden">
+                            <button
+                                onClick={() => setResult("")}
+                                className="p-2 bg-slate-50 dark:bg-slate-800 rounded-full border border-border text-slate-500 hover:text-indigo-600 transition-all active:scale-90"
+                            >
+                                <ChevronDown size={24} />
+                            </button>
+                            <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full mr-12" /> {/* Centered handle relative to button */}
+                        </div>
+
+                        <h2 className="text-xl font-bold text-foreground mb-6 hidden md:block">AI Result</h2>
+                        <div className="flex-1 bg-card border border-border rounded-[24px] shadow-sm p-8 flex flex-col relative overflow-hidden transition-colors">
+                            <div className="flex-1 overflow-y-auto pr-2 flex flex-col items-center justify-center h-full">
+
+                                {/* LOADING STATE */}
+                                {isLoading && (
+                                    <div className="flex flex-col items-center justify-center space-y-8 w-full">
+                                        <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center animate-bounce shadow-2xl dark:shadow-none shadow-indigo-200">
+                                            <Sparkles className="text-white w-8 h-8" />
+                                        </div>
+                                        <div className="w-full max-w-[240px] space-y-4">
+                                            {[{ s: 1, t: "SEO Analysis" }, { s: 2, t: "Tone Refinement" }, { s: 3, t: "Final Polish" }].map((item) => (
+                                                <div key={item.s} className={`flex items-center gap-4 transition-all duration-700 ${step >= item.s ? 'opacity-100' : 'opacity-10'}`}>
+                                                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step > item.s ? 'bg-green-500 text-white' : 'border-2 border-indigo-500 text-indigo-500 animate-pulse'}`}>
+                                                        {step > item.s ? "✓" : item.s}
+                                                    </div>
+                                                    <span className={`text-sm font-bold ${step === item.s ? 'text-indigo-600' : 'text-slate-400'}`}>{item.t}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* RESULT STATE */}
+                                {!isLoading && result && (
+                                    <div className="w-full h-full animate-in fade-in zoom-in-95 duration-1000 relative">
+                                        <button
+                                            onClick={() => navigator.clipboard.writeText(result)}
+                                            className="absolute top-0 right-0 p-2 bg-card border border-border rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 transition-all z-10"
+                                        >
+                                            <Copy size={16} />
+                                        </button>
+                                        <div className="p-8 bg-indigo-50/20 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-500/20 rounded-[20px] text-foreground shadow-sm overflow-y-auto max-h-full w-full">
+                                            {result.split('\n').map((line, i) => {
+                                                const trimmedLine = line.trim();
+                                                if (!trimmedLine) return null;
+                                                const match = trimmedLine.match(/^(TITLE|DESCRIPTION|FEATURES|TAGS):?\s*(.*)/i);
+                                                if (match) {
+                                                    return (
+                                                        <div key={i} className="mt-6 mb-2 first:mt-0">
+                                                            <div className="mb-2">
+                                                                <span className="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded-md font-black tracking-widest uppercase inline-block">{match[1].toUpperCase()}</span>
+                                                            </div>
+                                                            {match[2] && <div className="text-slate-600 leading-relaxed mb-4">{match[2]}</div>}
+                                                        </div>
+                                                    );
+                                                }
+                                                if (trimmedLine.includes('#')) {
+                                                    return (
+                                                        <div key={i} className="flex flex-wrap gap-2 mt-3">
+                                                            {trimmedLine.split(/\s+/).filter(t => t.startsWith('#')).map((tag, idx) => (
+                                                                <span key={idx} className="text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-lg">{tag}</span>
+                                                            ))}
+                                                        </div>
+                                                    );
+                                                }
+                                                return <div key={i} className={`text-slate-600 leading-relaxed ${/^\d\./.test(trimmedLine) ? 'ml-4 font-medium mb-1' : 'mb-4'}`}>{trimmedLine}</div>;
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </section>
                 )}
 
                 {activeTab === 'history' && (
                     <div className="flex-1 p-10 bg-card overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-10 relative transition-colors">
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-8 transition-colors">Generation History</h1>
+                        <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-8 transition-colors tracking-tight">Generation History</h1>
 
                         <div className={`space-y-4 ${plan === 'Free' ? 'blur-md pointer-events-none select-none' : ''}`}>
                             {history.length === 0 ? (
                                 <p className="text-slate-400 italic">No magic saved in your account yet...</p>
                             ) : (
                                 (plan === 'Free' ? [...history, ...history, ...history].slice(0, 6) : history).map((item, idx) => (
-                                    <div key={item.id || idx} className="p-5 border border-border rounded-2xl flex justify-between items-center group bg-card transition-colors">
+                                    <button
+                                        key={item.id || idx}
+                                        onClick={() => {
+                                            setProductName(item.product_name);
+                                            setResult(item.result_text);
+                                        }}
+                                        className="w-full text-left p-5 border border-border rounded-2xl flex justify-between items-center group bg-card hover:border-indigo-500/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all cursor-pointer active:scale-[0.99]"
+                                    >
                                         <div className="flex-1">
-                                            <h3 className="font-bold text-foreground">{item.product_name || "Premium Generation"}</h3>
+                                            <h3 className="font-bold text-foreground dark:text-white group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{item.product_name || "Premium Generation"}</h3>
                                             <p className="text-sm text-slate-400">Generated on {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recently'}</p>
                                         </div>
-                                        <Trash2 size={18} className="text-slate-200" />
-                                    </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                deleteHistoryItem(item.id);
+                                            }}
+                                            className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </button>
                                 ))
                             )}
                         </div>
