@@ -330,7 +330,7 @@ export default function Support() {
                                                                 <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-1">
                                                                     <Shield size={10} fill="currentColor" /> Prowrite Team Response
                                                                 </p>
-                                                                <div className="bg-indigo-600 text-white p-4 rounded-2xl rounded-tl-none shadow-md shadow-indigo-100">
+                                                                <div className="bg-indigo-600 text-white p-4 rounded-2xl rounded-tl-none shadow-md dark:shadow-none shadow-indigo-100">
                                                                     <p className="text-sm font-medium leading-relaxed">
                                                                         {ticket.admin_reply}
                                                                     </p>
