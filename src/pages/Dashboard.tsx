@@ -174,18 +174,17 @@ const Dashboard = () => {
                 <div className="mt-8 flex flex-col items-center">
                     <p className="text-[10px] font-black text-indigo-500/50 uppercase tracking-[0.5em] animate-pulse">Initializing</p>
                     <div className="mt-6 w-24 h-1 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-600 animate-progress origin-left w-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
+                        <div className="h-full bg-indigo-600 animate-progress-once origin-left w-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
                     </div>
                 </div>
                 <style dangerouslySetInnerHTML={{
                     __html: `
-                    @keyframes progress {
+                    @keyframes progressOnce {
                         0% { transform: scaleX(0); }
-                        50% { transform: scaleX(0.7); }
                         100% { transform: scaleX(1); }
                     }
-                    .animate-progress {
-                        animation: progress 2s ease-in-out infinite;
+                    .animate-progress-once {
+                        animation: progressOnce 3s linear forwards;
                     }
                 `}} />
             </div>
@@ -586,15 +585,15 @@ const Dashboard = () => {
                         </div>
                         <h1 className="text-2xl font-bold text-foreground mb-8 hidden md:block">Account Settings</h1>
                         <div className="max-w-md space-y-6">
-                            <div className="flex items-center gap-4 p-6 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100/50 dark:border-indigo-500/20">
+                            <div className="flex items-center gap-4 p-6 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100/50 dark:border-indigo-500/20 relative overflow-hidden">
                                 <div className="w-12 h-12 flex-shrink-0 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
                                     {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U"}
                                 </div>
                                 <div>
                                     <p className="font-bold text-slate-800 dark:text-indigo-400">{user?.user_metadata?.full_name || "User"}</p>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm text-indigo-600 font-medium">{user?.email || "No email found"}</p>
-                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${plan === 'Free' ? 'bg-slate-200 text-slate-600' : 'bg-indigo-600 text-white'}`}>
+                                    <div className="flex flex-wrap items-center gap-2 max-w-full">
+                                        <p className="text-sm text-indigo-600 font-medium truncate max-w-[120px] xs:max-w-[150px] md:max-w-none">{user?.email || "No email found"}</p>
+                                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${plan === 'Free' ? 'bg-slate-200 text-slate-600' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'}`}>
                                             {plan}
                                         </span>
                                     </div>
@@ -622,22 +621,18 @@ const Dashboard = () => {
                                     <LogOut size={18} /> Logout
                                 </button>
 
-                                {/* INTERACTIVE MOBILE TOGGLE CARD */}
-                                <div className="md:hidden mt-10 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[32px] border border-border">
-                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Appearance</h3>
-                                    <div
-                                        onClick={toggleTheme}
-                                        className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-2xl border border-border shadow-sm active:scale-[0.98] transition-all"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            {theme === 'dark' ? <Moon className="text-yellow-500" /> : <Sun className="text-orange-500" />}
-                                            <span className="font-bold text-foreground">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
-                                        </div>
-                                        <div className={`w-12 h-6 rounded-full p-1 transition-colors ${theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-200'}`}>
-                                            <div className={`w-4 h-4 bg-white rounded-full shadow-sm transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`} />
-                                        </div>
+                                <button
+                                    onClick={toggleTheme}
+                                    className="w-full text-left p-4 rounded-xl border border-slate-200 dark:border-indigo-500/20 hover:border-indigo-300 dark:hover:border-indigo-400 bg-transparent dark:bg-indigo-900/5 transition-all font-medium text-slate-600 dark:text-indigo-300/80 flex items-center justify-between"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {theme === 'dark' ? <Moon size={18} className="text-yellow-500" /> : <Sun size={18} className="text-orange-500" />}
+                                        <span>Appearance: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
                                     </div>
-                                </div>
+                                    <div className={`w-10 h-5 rounded-full p-1 transition-colors ${theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-200'}`}>
+                                        <div className={`w-3 h-3 bg-white rounded-full transition-transform ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0'}`} />
+                                    </div>
+                                </button>
                             </div>
                         </div>
                     </div>

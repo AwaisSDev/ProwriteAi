@@ -127,18 +127,17 @@ export default function Support() {
                 <div className="mt-8 flex flex-col items-center">
                     <p className="text-[10px] font-black text-indigo-500/50 uppercase tracking-[0.5em] animate-pulse">Verifying</p>
                     <div className="mt-6 w-24 h-1 bg-slate-100 dark:bg-slate-800/50 rounded-full overflow-hidden">
-                        <div className="h-full bg-indigo-600 animate-progress origin-left w-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
+                        <div className="h-full bg-indigo-600 animate-progress-once origin-left w-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
                     </div>
                 </div>
                 <style dangerouslySetInnerHTML={{
                     __html: `
-                    @keyframes progress {
+                    @keyframes progressOnce {
                         0% { transform: scaleX(0); }
-                        50% { transform: scaleX(0.7); }
                         100% { transform: scaleX(1); }
                     }
-                    .animate-progress {
-                        animation: progress 2s ease-in-out infinite;
+                    .animate-progress-once {
+                        animation: progressOnce 3s linear forwards;
                     }
                 `}} />
             </div>
