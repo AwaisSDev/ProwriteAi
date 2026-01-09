@@ -113,7 +113,7 @@ export default async function handler(req, res) {
                 { role: "system", content: systemPrompt },
                 { role: "user", content: `Product: ${name}. Features: ${features}` }
             ],
-            model: userPlan === 'Pro' ? "llama-3.3-70b-versatile" : "llama3-8b-8192",
+            model: userPlan === 'Pro' ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant",
         });
 
         res.status(200).json({ description: response.choices[0].message.content });
