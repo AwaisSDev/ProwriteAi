@@ -14,6 +14,7 @@ import Onboarding from "./pages/Onboarding";
 import Pricing from "./pages/Pricing";
 import Support from "./pages/Support";
 import AdminSupport from "./pages/AdminSupport";
+import LogoAsset from "./pages/LogoAsset";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/support" element={<Support />} />
               <Route path="/admin" element={<AdminSupport />} />
+              <Route path="/logo" element={<LogoAsset />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

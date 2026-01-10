@@ -22,34 +22,109 @@ const Pricing = () => {
             }
         };
         fetchUserPlan();
+
+        // Initialize SafePay when script loads
+        const initSafePay = () => {
+            if (window.safepay) {
+                try {
+                    window.safepay.setup({
+                        environment: 'sandbox',
+                        apiKey: 'sec_12efcfb2-706e-4401-b85f-7ec98c6d669a',
+                        vpay: false
+                    });
+                } catch (error) {
+                    console.error('SafePay setup error:', error);
+                }
+            }
+        };
+
+        // Try immediately
+        initSafePay();
+
+        // Also try after a delay in case script is still loading
+        const timer = setTimeout(initSafePay, 1000);
+        return () => clearTimeout(timer);
     }, []);
 
+    const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+    const [checkoutData, setCheckoutData] = useState<any>(null);
+
     const handleUpgrade = async (planName: string) => {
+        if (planName === 'Free') return;
+
         setIsLoading(planName);
 
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
             toast.error("Please login to upgrade");
             navigate('/auth');
+            setIsLoading(null);
             return;
         }
 
-        // Mock payment delay
-        await new Promise(res => setTimeout(res, 1500));
+        try {
+            // 1. Create SafePay checkout session
+            const amount = planName === 'Pro' ? 5600 : 2800; // PKR
+            const response = await fetch('/api/safepay-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    amount,
+                    currency: 'PKR',
+                    planName,
+                    userId: user.id
+                })
+            });
 
-        const { error } = await supabase
-            .from('profiles')
-            .update({ plan: planName, credits: planName === 'Pro' ? 200 : planName === 'Plus' ? 100 : 5 })
-            .eq('id', user.id);
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('API Error:', errorData);
+                throw new Error(errorData.error || 'Failed to init payment');
+            }
 
-        if (!error) {
-            toast.success(`Successfully upgraded to ${planName}!`);
-            setUserPlan(planName);
-        } else {
-            console.error("Supabase Error:", error);
-            toast.error(`Upgrade failed: ${error.message || "Please check your database permissions"}`);
+            const data = await response.json();
+            console.log('SafePay checkout created:', data);
+
+            // 2. Show mock checkout modal
+            setCheckoutData({ ...data, planName, user });
+            setShowCheckoutModal(true);
+            setIsLoading(null);
+
+        } catch (error: any) {
+            console.error("Payment Error:", error);
+            toast.error(error.message || "Payment failed to start");
+            setIsLoading(null);
         }
-        setIsLoading(null);
+    };
+
+    const handlePaymentComplete = async () => {
+        if (!checkoutData) return;
+
+        try {
+            toast.info("Processing payment...");
+
+            // Simulate payment processing
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Update Profile in Supabase
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    plan: checkoutData.planName,
+                    credits: checkoutData.planName === 'Pro' ? 200 : 100
+                })
+                .eq('id', checkoutData.user.id);
+
+            if (!error) {
+                toast.success(`Payment successful! Welcome to ${checkoutData.planName}! 🎉`);
+                setUserPlan(checkoutData.planName);
+                setShowCheckoutModal(false);
+            } else {
+                toast.error("Failed to update plan. Please contact support.");
+            }
+        } catch (error) {
+            toast.error("Payment processing failed");
+        }
     };
 
     const plans = [
@@ -188,12 +263,74 @@ const Pricing = () => {
 
                 {/* FAQ or Micro-copy */}
                 <div className="mt-20 text-center animate-in fade-in duration-1000 delay-500">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-xs font-bold text-slate-500 shadow-sm">
-                        <Shield size={14} className="text-green-500" />
-                        <span>Secure SSL Encryption & 14-day money back guarantee</span>
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-full text-xs font-bold text-slate-500 shadow-sm">
+                            <Shield size={14} className="text-green-500" />
+                            <span>Secure SSL Encryption & 14-day money back guarantee</span>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                            Payments powered by <span className="text-indigo-600">SafePay</span> Sandbox
+                        </p>
                     </div>
                 </div>
             </main>
+
+            {/* SafePay Checkout Modal */}
+            {showCheckoutModal && checkoutData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <Shield className="w-8 h-8 text-white" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-900 mb-2">SafePay Sandbox Checkout</h2>
+                            <p className="text-sm text-slate-500">Secure Payment Gateway</p>
+                        </div>
+
+                        <div className="space-y-4 mb-6">
+                            <div className="bg-slate-50 rounded-2xl p-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase">Plan</span>
+                                    <span className="text-sm font-bold text-slate-900">{checkoutData.planName}</span>
+                                </div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-xs font-bold text-slate-400 uppercase">Amount</span>
+                                    <span className="text-sm font-bold text-slate-900">PKR {checkoutData.amount}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold text-slate-400 uppercase">Order ID</span>
+                                    <span className="text-xs font-mono text-slate-600">{checkoutData.orderId?.slice(0, 20)}...</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3">
+                                <p className="text-xs text-indigo-700 font-medium">
+                                    🧪 <strong>Sandbox Mode:</strong> This is a test payment. No real money will be charged.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <button
+                                onClick={handlePaymentComplete}
+                                className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:scale-[1.02] transition-transform active:scale-95"
+                            >
+                                Complete Test Payment
+                            </button>
+                            <button
+                                onClick={() => setShowCheckoutModal(false)}
+                                className="w-full py-4 bg-white border-2 border-slate-200 text-slate-700 rounded-2xl font-bold hover:border-slate-300 transition-all active:scale-95"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+
+                        <p className="text-center text-xs text-slate-400 mt-4">
+                            Powered by <span className="font-bold text-indigo-600">SafePay</span> Sandbox
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
