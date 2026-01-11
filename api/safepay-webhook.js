@@ -4,13 +4,23 @@ export default async function handler(req, res) {
     const receivedAt = new Date().toISOString();
     console.log(`\n--- INCOMING SAFEPAY WEBHOOK (${receivedAt}) ---`);
 
-    // Try to read body defensively (some platforms give raw body)
+    // Try to read body defensively and capture raw stream if needed
     let payload = req.body;
+    async function readRaw() {
+        return await new Promise((resolve) => {
+            let data = '';
+            req.on('data', (chunk) => { data += chunk; });
+            req.on('end', () => { resolve(data); });
+            req.on('error', () => { resolve(''); });
+        });
+    }
+
     try {
-        if (!payload || Object.keys(payload).length === 0) {
-            // attempt to parse raw body if available
-            const raw = req.rawBody || req.bodyRaw || '';
-            if (raw && typeof raw === 'string') payload = JSON.parse(raw);
+        if (!payload || (typeof payload === 'object' && Object.keys(payload).length === 0)) {
+            const raw = req.rawBody || req.bodyRaw || await readRaw();
+            if (raw && typeof raw === 'string') {
+                try { payload = JSON.parse(raw); } catch (e) { payload = raw; }
+            }
         }
     } catch (err) {
         console.warn('⚠️ Failed to parse raw body:', err?.message || err);
@@ -18,7 +28,7 @@ export default async function handler(req, res) {
 
     console.log('Request method:', req.method);
     console.log('Headers:', JSON.stringify(req.headers, null, 2));
-    console.log('Payload:', JSON.stringify(payload, null, 2));
+    console.log('Payload:', typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2));
 
     // Extract fields with fallbacks
     const type = payload?.type || payload?.event || null;
