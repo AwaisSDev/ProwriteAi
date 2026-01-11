@@ -38,9 +38,15 @@ export default async function handler(req, res) {
     console.log('Payload:', typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2));
 
     // Extract fields with fallbacks
-    const type = payload?.type || payload?.event || payload?.data?.type || null;
+// Extract fields specifically for the SafePay structure you just received
+    const type = payload?.type || payload?.data?.type || null;
     const state = payload?.data?.state || payload?.state || null;
-    const orderId = payload?.data?.metadata?.order_id || payload?.data?.notification?.metadata?.order_id || payload?.reference || null;
+    
+    // This is where your ID was hiding in the log!
+    const orderId = payload?.data?.notification?.metadata?.order_id || 
+                    payload?.data?.metadata?.order_id || 
+                    payload?.reference || null;
+
     console.log(`Parsed: type=${type} | state=${state} | order_id=${orderId}`);
 
     // Default response body (we ALWAYS respond 200 to SafePay)
