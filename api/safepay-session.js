@@ -1,34 +1,38 @@
-// api/safepay-session.js
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+    if (req.method !== 'POST') return res.status(405).send('Only POST allowed');
 
-    const { amount, planName, userId } = req.body;
-    const SAFEPAY_API_KEY = "sec_12efcfb2-706e-4401-b85f-7ec98c6d669a"; // Sandbox API Key
+    // Safepay usually sends these at the top level of the body
+    const { tracker, signature, order_id } = req.body;
+    const sharedSecret = process.env.SAFEPAY_SECRET_KEY;
+
+    if (!tracker || !signature || !order_id) {
+        return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // 1. Verify the Signature
+    const hash = crypto.createHmac('sha256', sharedSecret).update(tracker).digest('hex');
+
+    if (hash !== signature) {
+        console.error("Auth failed: Signatures do not match");
+        return res.status(401).json({ error: "Invalid signature" });
+    }
+
+    // 2. Extract info (Handles PROWRITE_userId_planName)
+    const parts = order_id.split('_');
+    if (parts.length < 3) return res.status(400).send("Invalid order_id format");
+
+    const userId = parts[1];
+    const planName = parts[2];
 
     try {
-        const response = await fetch("https://sandbox.api.getsafepay.com/order/v1/init", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                client: SAFEPAY_API_KEY,
-                amount: parseFloat(amount),
-                currency: 'PKR',
-                environment: 'sandbox'
-            })
-        });
+        const { error } = await supabase
+            .from('profiles')
+            .update({ plan: planName })
+            .eq('id', userId);
 
-        const result = await response.json();
-
-        if (result.status.message === "success") {
-            // Return the token and a custom order_id for your system
-            res.status(200).json({
-                token: result.data.token,
-                order_id: `ORDER_${userId}_${planName}_${Date.now()}`
-            });
-        } else {
-            res.status(400).json({ error: "Safepay Init Failed" });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (error) throw error;
+        return res.status(200).json({ status: "success" });
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
     }
 }
