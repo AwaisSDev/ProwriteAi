@@ -77,8 +77,8 @@ const Pricing = () => {
                 source: 'custom',
                 order_id: data.order_id,
                 // CHANGE THESE TWO LINES:
-                redirect_url: `${window.location.origin}/api/safepay-session`,
-                cancel_url: `${window.location.origin}/pricing`
+                redirect_url: "https://www.prowriteai.online/api/success", // Point to the new bridge
+                cancel_url: "https://www.prowriteai.online/pricing"
             });
 
             // 3. Redirect the user
