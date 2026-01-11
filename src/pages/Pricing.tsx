@@ -10,40 +10,33 @@ const Pricing = () => {
     const [isLoading, setIsLoading] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchUserPlan = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data: profile } = await supabase
+        const params = new URLSearchParams(window.location.search);
+        const tracker = params.get('tracker');
+        const orderId = params.get('order_id');
+        const sig = params.get('sig');
+
+        if (tracker && orderId && sig) {
+            const finalizePayment = async () => {
+                // 1. Parse the data we hid in the order_id
+                const parts = orderId.split('_');
+                const userId = parts[1];
+                const planName = parts[2];
+
+                // 2. Update Supabase
+                const { error } = await supabase
                     .from('profiles')
-                    .select('plan')
-                    .eq('id', user.id)
-                    .single();
-                if (profile) setUserPlan(profile.plan || 'Free');
-            }
-        };
-        fetchUserPlan();
+                    .update({ plan: planName })
+                    .eq('id', userId);
 
-        // Initialize SafePay when script loads
-        const initSafePay = () => {
-            if (window.safepay) {
-                try {
-                    window.safepay.setup({
-                        environment: 'sandbox',
-                        apiKey: 'sec_12efcfb2-706e-4401-b85f-7ec98c6d669a',
-                        vpay: false
-                    });
-                } catch (error) {
-                    console.error('SafePay setup error:', error);
+                if (!error) {
+                    toast.success(`Welcome to ${planName}!`);
+                    // 3. Clean the URL so it doesn't trigger again on refresh
+                    window.history.replaceState({}, '', '/pricing');
                 }
-            }
-        };
+            };
 
-        // Try immediately
-        initSafePay();
-
-        // Also try after a delay in case script is still loading
-        const timer = setTimeout(initSafePay, 1000);
-        return () => clearTimeout(timer);
+            finalizePayment();
+        }
     }, []);
 
     const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -55,37 +48,35 @@ const Pricing = () => {
 
         try {
             const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return navigate('/auth');
 
-            // 1. Get the token from your new Vercel API
+            // 1. Get the tracker from your Vercel API
             const response = await fetch('/api/safepay-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     amount: planName === 'Pro' ? 5600 : 2800,
                     planName,
-                    userId: user?.id
+                    userId: user.id
                 })
             });
-
             const data = await response.json();
 
-            // 2. Construct the Redirect URL
+            // 2. Build the Redirect URL
             const baseURL = "https://sandbox.api.getsafepay.com/components";
             const params = new URLSearchParams({
                 env: "sandbox",
-                beacon: data.token, // This is the tracker token
+                beacon: data.token, // Tracker token
                 source: 'custom',
-                order_id: data.order_id,
-                redirect_url: `${window.location.origin}/dashboard`, // Where to go after success
-                cancel_url: `${window.location.origin}/pricing`      // Where to go if they cancel
+                order_id: `PROWRITE_${user.id}_${planName}`, // We'll parse this later
+                redirect_url: `https://www.prowriteai.online/pricing`,
+                cancel_url: `https://www.prowriteai.online/pricing`
             });
 
-            // 3. Redirect the user
+            // 3. Go to SafePay
             window.location.href = `${baseURL}?${params.toString()}`;
-
         } catch (error) {
-            toast.error("Payment failed to initialize");
-        } finally {
+            toast.error("Checkout failed to start.");
             setIsLoading(null);
         }
     };
