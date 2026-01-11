@@ -50,35 +50,41 @@ const Pricing = () => {
     const [checkoutData, setCheckoutData] = useState<any>(null);
 
     const handleUpgrade = async (planName: string) => {
+        if (planName === 'Free') return;
         setIsLoading(planName);
 
         try {
-            // 1. Get the tracker token from YOUR backend
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // 1. Get the token from your new Vercel API
             const response = await fetch('/api/safepay-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan: planName })
+                body: JSON.stringify({
+                    amount: planName === 'Pro' ? 5600 : 2800,
+                    planName,
+                    userId: user?.id
+                })
             });
-            const { tracker } = await response.json();
 
-            // 2. Trigger the Safepay Popup
-            if (window.safepay) {
-                window.safepay.setup({
-                    environment: 'sandbox',
-                    apiKey: 'sec_12efcfb2-706e-4401-b85f-7ec98c6d669a', // Your Sandbox Key
-                });
+            const data = await response.json();
 
-                window.safepay.checkout({
-                    tracker: tracker, // The token from step 1
-                    onPayment: (data) => {
-                        toast.success("Payment successful!");
-                        navigate('/dashboard');
-                    },
-                    onClose: () => setIsLoading(null)
-                }).open();
-            }
+            // 2. Construct the Redirect URL
+            const baseURL = "https://sandbox.api.getsafepay.com/components";
+            const params = new URLSearchParams({
+                env: "sandbox",
+                beacon: data.token, // This is the tracker token
+                source: 'custom',
+                order_id: data.order_id,
+                redirect_url: `${window.location.origin}/dashboard`, // Where to go after success
+                cancel_url: `${window.location.origin}/pricing`      // Where to go if they cancel
+            });
+
+            // 3. Redirect the user
+            window.location.href = `${baseURL}?${params.toString()}`;
+
         } catch (error) {
-            toast.error("Could not start payment");
+            toast.error("Payment failed to initialize");
         } finally {
             setIsLoading(null);
         }
