@@ -2,52 +2,52 @@ import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
     const payload = req.body;
-    console.log("Structure Received:", JSON.stringify(payload));
 
-    // 1. Hunt for the Order ID based on the payload you sent
-    // It's inside data -> metadata -> order_id
-    let orderId = payload.data?.metadata?.order_id || payload.reference || payload.tracker;
+    // 1. LOUD LOG: This will show you exactly what SafePay is sending
+    console.log("--- INCOMING WEBHOOK DATA ---");
+    console.log(JSON.stringify(payload, null, 2));
 
-    // Fallback if it's in the other metadata format
-    if (!orderId && payload.payment_metadata) {
-        const orderMeta = payload.payment_metadata.find(m => m.meta_key === 'order_id');
-        if (orderMeta) orderId = orderMeta.meta_value;
-    }
-
-    // 2. Check for Success (Accepting PAID or TRACKER_ENDED)
+    // 2. Extract Data
+    const type = payload.type || payload.event;
     const state = payload.data?.state || payload.state;
-    const isSuccess = state === 'PAID' || state === 'TRACKER_ENDED' || payload.type === 'payment.succeeded';
+    const orderId = payload.data?.metadata?.order_id || payload.reference;
 
-    if (isSuccess && orderId) {
-        const parts = orderId.split('_');
+    console.log(`Type: ${type} | State: ${state} | OrderID: ${orderId}`);
 
-        // Only update if it's OUR format (ORDER_id_plan)
-        if (parts.length >= 3) {
-            const userId = parts[1];
-            const planName = parts[2];
-            const credits = planName === 'Pro' ? 200 : 100;
+    // 3. Logic: Only proceed if it's a Success
+    if (type === 'payment.succeeded' || state === 'PAID' || state === 'TRACKER_ENDED') {
 
-            const supabase = createClient(
-                process.env.VITE_SUPABASE_URL,
-                process.env.SUPABASE_SERVICE_ROLE_KEY
-            );
-
-            const { error } = await supabase
-                .from('profiles')
-                .update({ plan: planName, credits: credits })
-                .eq('id', userId);
-
-            if (error) {
-                console.error("DB Error:", error.message);
-                return res.status(500).send("DB Update Failed");
-            }
-
-            console.log(`✅ SUCCESS: ${userId} upgraded to ${planName}`);
-            return res.status(200).json({ status: "success" });
-        } else {
-            console.log("ℹ️ Test event ignored (Order ID was not in our format):", orderId);
+        if (!orderId || !orderId.includes('_')) {
+            console.log("ℹ️ Success received, but Order ID format is just a test/generic.");
+            return res.status(200).send("Test event acknowledged");
         }
-    }
 
-    return res.status(200).send("OK");
+        const parts = orderId.split('_');
+        const userId = parts[1];
+        const planName = parts[2];
+        const credits = planName === 'Pro' ? 200 : 100;
+
+        const supabase = createClient(
+            process.env.VITE_SUPABASE_URL,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+        );
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ plan: planName, credits: credits })
+            .eq('id', userId);
+
+        if (error) {
+            console.error("❌ SUPABASE ERROR:", error.message);
+            return res.status(500).send("Database update failed");
+        }
+
+        console.log(`✅ SUCCESS: User ${userId} upgraded to ${planName}`);
+        return res.status(200).json({ status: "success" });
+
+    } else {
+        // Log exactly why we are ignoring it (like the 'stolen card' error)
+        console.log(`⚠️ Webhook ignored because status is not 'Success'. Current Type: ${type}`);
+        return res.status(200).send("Not a success event");
+    }
 }
