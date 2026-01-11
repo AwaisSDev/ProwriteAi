@@ -50,49 +50,36 @@ const Pricing = () => {
     const [checkoutData, setCheckoutData] = useState<any>(null);
 
     const handleUpgrade = async (planName: string) => {
-        if (planName === 'Free') return;
-
         setIsLoading(planName);
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            toast.error("Please login to upgrade");
-            navigate('/auth');
-            setIsLoading(null);
-            return;
-        }
-
         try {
-            // 1. Create SafePay checkout session
-            const amount = planName === 'Pro' ? 5600 : 2800; // PKR
+            // 1. Get the tracker token from YOUR backend
             const response = await fetch('/api/safepay-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    amount,
-                    currency: 'PKR',
-                    planName,
-                    userId: user.id
-                })
+                body: JSON.stringify({ plan: planName })
             });
+            const { tracker } = await response.json();
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('API Error:', errorData);
-                throw new Error(errorData.error || 'Failed to init payment');
+            // 2. Trigger the Safepay Popup
+            if (window.safepay) {
+                window.safepay.setup({
+                    environment: 'sandbox',
+                    apiKey: 'sec_12efcfb2-706e-4401-b85f-7ec98c6d669a', // Your Sandbox Key
+                });
+
+                window.safepay.checkout({
+                    tracker: tracker, // The token from step 1
+                    onPayment: (data) => {
+                        toast.success("Payment successful!");
+                        navigate('/dashboard');
+                    },
+                    onClose: () => setIsLoading(null)
+                }).open();
             }
-
-            const data = await response.json();
-            console.log('SafePay checkout created:', data);
-
-            // 2. Show mock checkout modal
-            setCheckoutData({ ...data, planName, user });
-            setShowCheckoutModal(true);
-            setIsLoading(null);
-
-        } catch (error: any) {
-            console.error("Payment Error:", error);
-            toast.error(error.message || "Payment failed to start");
+        } catch (error) {
+            toast.error("Could not start payment");
+        } finally {
             setIsLoading(null);
         }
     };
@@ -247,15 +234,22 @@ const Pricing = () => {
                             <button
                                 onClick={() => handleUpgrade(plan.name)}
                                 disabled={!!isLoading || userPlan === plan.name}
-                                className={`w-full py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 ${plan.highlight
-                                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 active:scale-95"
-                                    : userPlan === plan.name
-                                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                        : "bg-white border-2 border-slate-200 text-slate-700 hover:border-indigo-600 hover:text-indigo-600 active:scale-95"
-                                    } ${isLoading === plan.name ? 'opacity-70' : ''}`}
+                                className={`w-full py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 
+        ${plan.highlight
+                                        ? "bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 active:scale-95"
+                                        : userPlan === plan.name
+                                            ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                            : "bg-white border-2 border-slate-200 text-slate-700 hover:border-indigo-600 hover:text-indigo-600 active:scale-95"
+                                    }`}
                             >
-                                {isLoading === plan.name && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {plan.buttonText}
+                                {isLoading === plan.name ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>Processing...</span>
+                                    </>
+                                ) : (
+                                    <span>{userPlan === plan.name ? "Current Plan" : "Buy Now"}</span>
+                                )}
                             </button>
                         </div>
                     ))}
