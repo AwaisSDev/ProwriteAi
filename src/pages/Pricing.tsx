@@ -76,8 +76,8 @@ const Pricing = () => {
                 beacon: data.token, // This is the tracker token
                 source: 'custom',
                 order_id: data.order_id,
-                redirect_url: `${window.location.origin}/dashboard`, // Where to go after success
-                cancel_url: `${window.location.origin}/pricing`      // Where to go if they cancel
+                redirect_url: "https://www.prowriteai.online/pricing", // Go here after success
+                cancel_url: "https://www.prowriteai.online/pricing"    // Go here if they cancel
             });
 
             // 3. Redirect the user
