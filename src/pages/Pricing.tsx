@@ -56,7 +56,7 @@ const Pricing = () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
-            // 1. Get the token from your new Vercel API
+            // 1. Get token from your backend
             const response = await fetch('/api/safepay-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -69,19 +69,18 @@ const Pricing = () => {
 
             const data = await response.json();
 
-            // 2. Construct the Redirect URL
+            // 2. This is the REAL SafePay Sandbox link
             const baseURL = "https://sandbox.api.getsafepay.com/components";
             const params = new URLSearchParams({
                 env: "sandbox",
                 beacon: data.token,
                 source: 'custom',
                 order_id: data.order_id,
-                // CHANGE THESE TWO LINES:
-                redirect_url: "https://www.prowriteai.online/api/success", // Point to the new bridge
+                redirect_url: "https://www.prowriteai.online/api/success",
                 cancel_url: "https://www.prowriteai.online/pricing"
             });
 
-            // 3. Redirect the user
+            // 3. This takes the user to SafePay to enter test card details
             window.location.href = `${baseURL}?${params.toString()}`;
 
         } catch (error) {
