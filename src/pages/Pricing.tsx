@@ -73,11 +73,12 @@ const Pricing = () => {
             const baseURL = "https://sandbox.api.getsafepay.com/components";
             const params = new URLSearchParams({
                 env: "sandbox",
-                beacon: data.token, // This is the tracker token
+                beacon: data.token,
                 source: 'custom',
                 order_id: data.order_id,
-                redirect_url: "https://www.prowriteai.online/pricing", // Go here after success
-                cancel_url: "https://www.prowriteai.online/pricing"    // Go here if they cancel
+                // CHANGE THESE TWO LINES:
+                redirect_url: `${window.location.origin}/api/safepay-session`,
+                cancel_url: `${window.location.origin}/pricing`
             });
 
             // 3. Redirect the user
