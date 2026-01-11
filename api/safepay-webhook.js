@@ -38,14 +38,9 @@ export default async function handler(req, res) {
     console.log('Payload:', typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2));
 
     // Extract fields with fallbacks
-// Extract fields specifically for the SafePay structure you just received
-    const type = payload?.type || payload?.data?.type || null;
+    const type = payload?.type || payload?.event || null;
     const state = payload?.data?.state || payload?.state || null;
-    
-    // This is where your ID was hiding in the log!
-    const orderId = payload?.data?.notification?.metadata?.order_id || 
-                    payload?.data?.metadata?.order_id || 
-                    payload?.reference || null;
+    const orderId = payload?.data?.metadata?.order_id || payload?.data?.metadata?.orderId || payload?.reference || payload?.data?.reference || null;
 
     console.log(`Parsed: type=${type} | state=${state} | order_id=${orderId}`);
 
