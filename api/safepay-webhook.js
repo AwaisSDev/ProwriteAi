@@ -3,6 +3,13 @@ import { createClient } from '@supabase/supabase-js';
 export default async function handler(req, res) {
     const receivedAt = new Date().toISOString();
     console.log(`\n--- INCOMING SAFEPAY WEBHOOK (${receivedAt}) ---`);
+    console.log('Request method:', req.method);
+
+    // Only process POST requests from SafePay
+    if (req.method !== 'POST') {
+        console.log('⚠️ Ignoring non-POST request.');
+        return res.status(200).json({ ok: true });
+    }
 
     // Try to read body defensively and capture raw stream if needed
     let payload = req.body;
@@ -31,10 +38,9 @@ export default async function handler(req, res) {
     console.log('Payload:', typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2));
 
     // Extract fields with fallbacks
-    const type = payload?.type || payload?.event || null;
+    const type = payload?.type || payload?.event || payload?.data?.type || null;
     const state = payload?.data?.state || payload?.state || null;
-    const orderId = payload?.data?.metadata?.order_id || payload?.data?.metadata?.orderId || payload?.reference || payload?.data?.reference || null;
-
+    const orderId = payload?.data?.metadata?.order_id || payload?.data?.notification?.metadata?.order_id || payload?.reference || null;
     console.log(`Parsed: type=${type} | state=${state} | order_id=${orderId}`);
 
     // Default response body (we ALWAYS respond 200 to SafePay)
