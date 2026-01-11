@@ -19,7 +19,11 @@ export default async function handler(req, res) {
                 client: SAFEPAY_API_KEY,
                 amount: parseFloat(amount),
                 currency: 'PKR',
-                environment: 'sandbox'
+                environment: 'sandbox',
+                // ADD THIS LINE - This is the "label" on the payment
+                metadata: {
+                    order_id: `ORDER_${userId}_${planName}`
+                }
             })
         });
 
