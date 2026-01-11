@@ -1,38 +1,38 @@
+// api/safepay-session.js
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Only POST allowed');
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    // Safepay usually sends these at the top level of the body
-    const { tracker, signature, order_id } = req.body;
-    const sharedSecret = process.env.SAFEPAY_SECRET_KEY;
-
-    if (!tracker || !signature || !order_id) {
-        return res.status(400).json({ error: "Missing required fields" });
-    }
-
-    // 1. Verify the Signature
-    const hash = crypto.createHmac('sha256', sharedSecret).update(tracker).digest('hex');
-
-    if (hash !== signature) {
-        console.error("Auth failed: Signatures do not match");
-        return res.status(401).json({ error: "Invalid signature" });
-    }
-
-    // 2. Extract info (Handles PROWRITE_userId_planName)
-    const parts = order_id.split('_');
-    if (parts.length < 3) return res.status(400).send("Invalid order_id format");
-
-    const userId = parts[1];
-    const planName = parts[2];
+    const { amount, planName, userId } = req.body;
 
     try {
-        const { error } = await supabase
-            .from('profiles')
-            .update({ plan: planName })
-            .eq('id', userId);
+        // 1. Get a Tracker Token from SafePay Sandbox
+        // In production, use: https://api.getsafepay.com/v1/init
+        const response = await fetch('https://sandbox.api.getsafepay.com/v1/init', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                client_id: process.env.SAFEPAY_API_KEY, // Get this from SafePay Dashboard
+                amount: amount,
+                currency: 'PKR',
+                environment: 'sandbox'
+            })
+        });
 
-        if (error) throw error;
-        return res.status(200).json({ status: "success" });
-    } catch (err) {
-        return res.status(500).json({ error: err.message });
+        const data = await response.json();
+
+        if (!data.status || data.status.errors) {
+            throw new Error("SafePay initialization failed");
+        }
+
+        // 2. Return the token and a custom order_id to your frontend
+        // We embed the plan name in the order_id so we can read it on return
+        res.status(200).json({
+            token: data.data.token,
+            order_id: `PRO_${userId}_${planName}_${Date.now()}`
+        });
+
+    } catch (error) {
+        console.error("SafePay Backend Error:", error);
+        res.status(500).json({ error: "Failed to initialize payment session" });
     }
 }
