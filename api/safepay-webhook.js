@@ -39,23 +39,33 @@ export default async function handler(req, res) {
 
     // Extract fields with fallbacks
     const type = payload?.type || payload?.event || null;
-    const state = payload?.data?.state || payload?.state || null;
-    const orderId = payload?.data?.metadata?.order_id || payload?.data?.metadata?.orderId || payload?.reference || payload?.data?.reference || null;
+    const state = payload?.data?.state || payload?.data?.status || payload?.state || payload?.status || null;
+    const orderId = payload?.data?.metadata?.order_id ||
+        payload?.data?.metadata?.orderId ||
+        payload?.reference ||
+        payload?.data?.reference ||
+        payload?.order_id ||
+        payload?.data?.order_id ||
+        null;
 
-    console.log(`Parsed: type=${type} | state=${state} | order_id=${orderId}`);
+    console.log(`Parsed details: type=${type} | state=${state} | order_id=${orderId}`);
 
     // Default response body (we ALWAYS respond 200 to SafePay)
     const safeResponse = { ok: true };
 
     try {
-        const isSuccess = type === 'payment.succeeded' || ['PAID', 'TRACKER_ENDED'].includes(String(state).toUpperCase());
+        const isSuccess =
+            type === 'payment.succeeded' ||
+            type === 'payment.success' ||
+            ['PAID', 'TRACKER_ENDED', 'SUCCESS'].includes(String(state).toUpperCase());
+
         if (!isSuccess) {
-            console.log('Ignored event: not a successful payment.');
+            console.log('Ignored event: not a successful payment based on type/state.');
             return res.status(200).json(safeResponse);
         }
 
         if (!orderId || typeof orderId !== 'string') {
-            console.log('Success event received but order_id is missing or invalid.');
+            console.log('Success event received but order_id is missing or invalid in payload.');
             return res.status(200).json(safeResponse);
         }
 
@@ -66,23 +76,34 @@ export default async function handler(req, res) {
             return res.status(200).json(safeResponse);
         }
 
-        const [, userId, ...planParts] = parts;
-        const planName = planParts.join('_');
-        const planNormalized = String(planName).toLowerCase();
-        const credits = planNormalized === 'pro' ? 200 : 100;
+        // Format is ORDER_userId_planName or ORDER_userId_planName_timestamp
+        const userId = parts[1];
+        let planElements = parts.slice(2);
 
-        console.log(`Updating user ${userId}: plan=${planName} credits=${credits}`);
+        // If the last part is a numeric timestamp, remove it to get the clean plan name
+        if (planElements.length > 1 && /^\d+$/.test(planElements[planElements.length - 1])) {
+            planElements.pop();
+        }
+
+        const planName = planElements.join('_'); // Join back in case plan name had underscores
+        const planNormalized = String(planName).toLowerCase();
+        const credits = (planNormalized === 'pro' || planNormalized.includes('pro')) ? 200 : 100;
+
+        console.log(`Updating user ${userId}: plan=${planName} (normalized=${planNormalized}) credits=${credits}`);
 
         // Create Supabase client with service role key (server-side)
-        const supabase = createClient(
-            process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL,
-            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY
-        );
+        const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
-        if (!supabase) {
-            console.error('Supabase client could not be created. Check env vars.');
+        if (!supabaseUrl || !supabaseServiceKey) {
+            console.error('❌ Missing Supabase environment variables:', {
+                url: !!supabaseUrl,
+                key: !!supabaseServiceKey
+            });
             return res.status(200).json(safeResponse);
         }
+
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         const { data: updateData, error } = await supabase
             .from('profiles')
