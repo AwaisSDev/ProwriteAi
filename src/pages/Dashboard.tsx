@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy, Coins, Zap, Lock, Shield, ArrowRight, Sun, Moon, ChevronDown, X, AlertOctagon } from "lucide-react";
+import { Sparkles, Layout, History, Settings, LogOut, Send, Trash2, Copy, Coins, Zap, Lock, Shield, ArrowRight, Sun, Moon, ChevronDown, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { useTheme } from "next-themes";
@@ -32,7 +32,6 @@ const Dashboard = () => {
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [isUpdating, setIsUpdating] = useState(false);
-    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // 1. AUTH & INITIAL FETCH
     useEffect(() => {
@@ -150,34 +149,51 @@ const Dashboard = () => {
     };
 
     const handleUpdateProfile = async () => {
-        if (!currentPassword) {
-            toast.error("Current password is required to save changes");
+        if (!newName && !newPassword) {
+            toast.error("No changes detected");
             return;
         }
+
         setIsUpdating(true);
         try {
-            // 1. Verify current password by attempting to sign in
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-                email: user.email,
-                password: currentPassword
-            });
-
-            if (signInError) throw new Error("Incorrect current password. Please try again.");
-
-            // 2. Apply updates
             const updates: any = {};
-            if (newName) updates.data = { full_name: newName };
-            if (newPassword) updates.password = newPassword;
 
+            // 1. If changing password, we REQUIRE current password verification
+            if (newPassword) {
+                if (!currentPassword) {
+                    throw new Error("Current password is required to set a new one");
+                }
+
+                // Verify session is still fresh/valid
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                    email: user.email,
+                    password: currentPassword
+                });
+                if (signInError) throw new Error("Incorrect current password");
+
+                updates.password = newPassword;
+            }
+
+            // 2. Add Name update if changed
+            if (newName && newName !== user.user_metadata?.full_name) {
+                updates.data = { full_name: newName };
+            }
+
+            if (Object.keys(updates).length === 0) {
+                toast.error("No new information to update");
+                return;
+            }
+
+            // 3. Apply updates
             const { error } = await supabase.auth.updateUser(updates);
             if (error) throw error;
 
-            toast.success("Profile updated successfully!");
+            toast.success("Profile updated!");
             setShowUpdateModal(false);
             setNewPassword("");
             setCurrentPassword("");
 
-            // Refresh user data
+            // 4. Refresh local user state
             const { data: { user: updatedUser } } = await supabase.auth.getUser();
             setUser(updatedUser);
         } catch (error: any) {
@@ -187,23 +203,7 @@ const Dashboard = () => {
         }
     };
 
-    const handleDeleteAccount = async () => {
-        try {
-            setIsUpdating(true);
-            // Delete profile data first (history and profile)
-            await supabase.from('history').delete().eq('user_id', user.id);
-            await supabase.from('profiles').delete().eq('id', user.id);
 
-            // Logout
-            await supabase.auth.signOut();
-            navigate("/");
-            toast.success("Account deleted permanently");
-        } catch (error: any) {
-            toast.error("Deletion failed: " + error.message);
-        } finally {
-            setIsUpdating(false);
-        }
-    };
 
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchCurrent, setTouchCurrent] = useState<number | null>(null);
@@ -635,9 +635,6 @@ const Dashboard = () => {
                                 <button onClick={handleLogout} className="w-full text-left p-4 rounded-xl border border-red-100 dark:border-red-900/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-medium flex items-center gap-2">
                                     <LogOut size={18} /> Logout
                                 </button>
-                                <button onClick={() => setShowDeleteConfirm(true)} className="w-full text-left p-4 rounded-xl border border-red-200/20 text-red-500/50 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all font-medium flex items-center gap-2 text-xs">
-                                    <Trash2 size={14} /> Delete Account
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -656,34 +653,39 @@ const Dashboard = () => {
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-slate-400">Current Password (Required)</label>
-                                    <input
-                                        type="password"
-                                        value={currentPassword}
-                                        onChange={(e) => setCurrentPassword(e.target.value)}
-                                        className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-foreground"
-                                        placeholder="Verify your identity"
-                                    />
-                                </div>
-                                <div className="space-y-2">
                                     <label className="text-xs font-bold uppercase text-slate-400">Full Name</label>
                                     <input
                                         type="text"
                                         value={newName}
                                         onChange={(e) => setNewName(e.target.value)}
-                                        className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-foreground"
+                                        className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-foreground transition-all"
                                         placeholder="Your full name"
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase text-slate-400">New Password</label>
-                                    <input
-                                        type="password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-foreground"
-                                        placeholder="Leave blank to keep current"
-                                    />
+                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                                    <p className="text-[10px] font-bold uppercase text-indigo-500 mb-4 tracking-widest">Change Password (Optional)</p>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold uppercase text-slate-400">Current Password</label>
+                                            <input
+                                                type="password"
+                                                value={currentPassword}
+                                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                                className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-foreground transition-all"
+                                                placeholder="Required only to change password"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold uppercase text-slate-400">New Password</label>
+                                            <input
+                                                type="password"
+                                                value={newPassword}
+                                                onChange={(e) => setNewPassword(e.target.value)}
+                                                className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-foreground transition-all"
+                                                placeholder="Enter new password"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="pt-4 flex gap-3">
@@ -706,35 +708,7 @@ const Dashboard = () => {
                     </div>
                 )}
 
-                {/* DELETE ACCOUNT CONFIRMATION */}
-                {showDeleteConfirm && (
-                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-red-900/20 backdrop-blur-md animate-in fade-in duration-300">
-                        <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 max-w-sm w-full shadow-2xl border border-red-100 dark:border-red-900/20 text-center animate-in zoom-in-95 duration-300">
-                            <div className="w-16 h-16 bg-red-50 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600">
-                                <AlertOctagon size={32} />
-                            </div>
-                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Wait!</h2>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
-                                Are you sure you want to delete your account? All your history and credits will be permanently removed. This cannot be undone.
-                            </p>
-                            <div className="flex flex-col gap-3">
-                                <button
-                                    onClick={handleDeleteAccount}
-                                    disabled={isUpdating}
-                                    className="w-full py-4 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 active:scale-95 transition-all disabled:opacity-50"
-                                >
-                                    {isUpdating ? "Deleting..." : "Yes, Delete Permanently"}
-                                </button>
-                                <button
-                                    onClick={() => setShowDeleteConfirm(false)}
-                                    className="w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+
 
                 {/* FLOATING EMAIL VIEWER (MOBILE) */}
                 {showEmailBadge && (
