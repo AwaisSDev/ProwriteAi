@@ -97,6 +97,21 @@ const Auth = () => {
     if (error) alert(error.message);
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      alert("Please enter your email address first");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth?mode=reset`
+    });
+    if (error) {
+      alert(error.message);
+    } else {
+      alert("Password reset link sent to your email!");
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#2e0653] px-4 font-sans selection:bg-purple-500 selection:text-white">
       {/* Background Glows (Kept same) */}
@@ -157,6 +172,17 @@ const Auth = () => {
                 placeholder="Password"
               />
             </div>
+            {isLogin && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
           </div>
 
           <button
