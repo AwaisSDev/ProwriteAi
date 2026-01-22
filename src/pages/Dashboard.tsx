@@ -47,12 +47,24 @@ const Dashboard = () => {
                 // Fetch Profile Data
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('credits, plan')
+                    .select('credits, plan, last_reset_date')
                     .eq('id', user.id)
                     .single();
 
                 if (profile) {
-                    setCredits(profile.credits);
+                    const today = new Date().toISOString().split('T')[0];
+                    let finalCredits = profile.credits;
+
+                    // If it's a new day or credits haven't been reset yet
+                    if (profile.last_reset_date !== today) {
+                        finalCredits = 50;
+                        await supabase
+                            .from('profiles')
+                            .update({ credits: 50, last_reset_date: today, plan: 'Pro' })
+                            .eq('id', user.id);
+                    }
+
+                    setCredits(finalCredits);
                     setPlan("Pro"); // Force Pro UI
                 }
 
