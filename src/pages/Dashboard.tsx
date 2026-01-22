@@ -45,18 +45,28 @@ const Dashboard = () => {
                 fetchHistory(user.id); // Load from DB
 
                 // Fetch Profile Data
-                const { data: profile } = await supabase
+                let { data: profile, error: fetchError } = await supabase
                     .from('profiles')
                     .select('credits, plan, last_reset_date')
                     .eq('id', user.id)
                     .single();
 
+                // Fallback if column 'last_reset_date' doesn't exist yet
+                if (fetchError) {
+                    const { data: fallbackProfile } = await supabase
+                        .from('profiles')
+                        .select('credits, plan')
+                        .eq('id', user.id)
+                        .single();
+                    profile = fallbackProfile;
+                }
+
                 if (profile) {
                     const today = new Date().toISOString().split('T')[0];
                     let finalCredits = profile.credits;
 
-                    // If it's a new day or credits haven't been reset yet
-                    if (profile.last_reset_date !== today) {
+                    // Only attempt reset logic if we have the date column
+                    if ('last_reset_date' in profile && profile.last_reset_date !== today) {
                         finalCredits = 50;
                         await supabase
                             .from('profiles')
