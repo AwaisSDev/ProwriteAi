@@ -47,7 +47,7 @@ const Dashboard = () => {
 
                 if (profile) {
                     setCredits(profile.credits);
-                    setPlan(profile.plan || "Free");
+                    setPlan("Pro"); // Force Pro UI
                 }
 
                 // Add 2s delay for premium feel
@@ -205,22 +205,11 @@ const Dashboard = () => {
                 </Link>
 
                 <nav className="flex-1 space-y-1">
-                    <div className="mb-6 px-2">
-                        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg dark:shadow-none relative overflow-hidden group cursor-pointer" onClick={() => navigate('/pricing')}>
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full blur-xl -mr-8 -mt-8 transition-transform group-hover:scale-150" />
-                            <div className="relative z-10 flex items-center justify-between">
-                                <div>
-                                    <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">Available Credits</p>
-                                    <p className="text-2xl font-bold">{credits}</p>
-                                </div>
-                                <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm group-hover:scale-110 transition-transform">
-                                    <Sparkles size={20} className="text-white" />
-                                </div>
-                            </div>
-                            <div className="relative z-10 mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider opacity-80 group-hover:opacity-100 transition-opacity">
-                                <span>Get More Credits</span>
-                                <Zap size={10} className="fill-current" />
-                            </div>
+                    <div className="mb-6 px-2 text-center">
+                        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg dark:shadow-none relative overflow-hidden group">
+                            <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">Daily Credits</p>
+                            <p className="text-2xl font-bold">{credits} / 50</p>
+                            <p className="text-[10px] font-bold uppercase opacity-60 mt-2">Resets Daily</p>
                         </div>
                     </div>
                     <button onClick={() => setActiveTab('writer')} className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all font-medium ${activeTab === 'writer' ? 'bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
@@ -260,14 +249,10 @@ const Dashboard = () => {
                         {/* INPUT SECTION */}
                         <section className="flex-1 p-10 overflow-y-auto bg-card border-r border-border pb-24 md:pb-10 transition-colors">
                             {/* MOBILE CREDITS DISPLAY */}
-                            <div
-                                onClick={() => navigate('/pricing')}
-                                className="md:hidden mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white shadow-lg flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform"
-                            >
+                            <div className="md:hidden mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white shadow-lg flex items-center justify-between">
                                 <div>
-                                    <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-0.5">Available Credits</p>
-                                    <p className="text-2xl font-bold leading-none">{credits}</p>
-                                    <p className="text-[10px] font-bold uppercase tracking-widest mt-2 opacity-80">Upgrade Now →</p>
+                                    <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-0.5">Daily Credits Remaining</p>
+                                    <p className="text-2xl font-bold leading-none">{credits} / 50</p>
                                 </div>
                                 <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
                                     <Sparkles size={20} className="text-white" />
@@ -339,32 +324,21 @@ const Dashboard = () => {
                                                     { name: 'Gen Z', premium: true },
                                                     { name: 'Persuasive', premium: true },
                                                     { name: 'Sharp', premium: true }
-                                                ].map((t) => {
-                                                    const isLocked = t.premium && plan === 'Free';
-                                                    return (
-                                                        <button
-                                                            key={t.name}
-                                                            onClick={() => {
-                                                                if (isLocked) {
-                                                                    navigate('/pricing');
-                                                                } else {
-                                                                    setTone(t.name);
-                                                                    setIsToneDropdownOpen(false);
-                                                                }
-                                                            }}
-                                                            className={`w-full px-4 py-2 flex items-center justify-between hover:bg-indigo-50/50 transition-colors text-left ${tone === t.name ? 'text-indigo-600' : 'text-foreground'}`}
-                                                        >
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-sm font-medium">{t.name}</span>
-                                                            </div>
-                                                            {isLocked ? (
-                                                                <Lock size={10} className="text-slate-300" />
-                                                            ) : (
-                                                                tone === t.name && <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.5)]" />
-                                                            )}
-                                                        </button>
-                                                    );
-                                                })}
+                                                ].map((t) => (
+                                                    <button
+                                                        key={t.name}
+                                                        onClick={() => {
+                                                            setTone(t.name);
+                                                            setIsToneDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full px-4 py-2 flex items-center justify-between hover:bg-indigo-50/50 transition-colors text-left ${tone === t.name ? 'text-indigo-600' : 'text-foreground'}`}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-medium">{t.name}</span>
+                                                        </div>
+                                                        {tone === t.name && <div className="w-1.5 h-1.5 rounded-full bg-indigo-600 shadow-[0_0_8px_rgba(79,70,229,0.5)]" />}
+                                                    </button>
+                                                ))}
 
                                                 <div className="my-2 border-t border-slate-50" />
 
@@ -379,32 +353,21 @@ const Dashboard = () => {
                                                     { name: 'Technical', pro: true },
                                                     { name: 'Seductive', pro: true },
                                                     { name: 'Cinematic', pro: true }
-                                                ].map((t) => {
-                                                    const isLocked = t.pro && plan !== 'Pro';
-                                                    return (
-                                                        <button
-                                                            key={t.name}
-                                                            onClick={() => {
-                                                                if (isLocked) {
-                                                                    navigate('/pricing');
-                                                                } else {
-                                                                    setTone(t.name);
-                                                                    setIsToneDropdownOpen(false);
-                                                                }
-                                                            }}
-                                                            className={`w-full px-4 py-2 flex items-center justify-between hover:bg-purple-50 transition-colors text-left ${tone === t.name ? 'text-purple-600' : 'text-foreground'}`}
-                                                        >
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-sm font-medium">{t.name}</span>
-                                                            </div>
-                                                            {isLocked ? (
-                                                                <Lock size={10} className="text-slate-300" />
-                                                            ) : (
-                                                                tone === t.name && <div className="w-1.5 h-1.5 rounded-full bg-purple-600 shadow-[0_0_8px_rgba(147,51,234,0.5)]" />
-                                                            )}
-                                                        </button>
-                                                    );
-                                                })}
+                                                ].map((t) => (
+                                                    <button
+                                                        key={t.name}
+                                                        onClick={() => {
+                                                            setTone(t.name);
+                                                            setIsToneDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full px-4 py-2 flex items-center justify-between hover:bg-purple-50 transition-colors text-left ${tone === t.name ? 'text-purple-600' : 'text-foreground'}`}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-medium">{t.name}</span>
+                                                        </div>
+                                                        {tone === t.name && <div className="w-1.5 h-1.5 rounded-full bg-purple-600 shadow-[0_0_8px_rgba(147,51,234,0.5)]" />}
+                                                    </button>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
@@ -521,14 +484,14 @@ const Dashboard = () => {
 
                 {activeTab === 'history' && (
                     <div className="flex-1 p-10 bg-card overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 pb-24 md:pb-10 relative transition-colors">
-                        <div className={`transition-all duration-700 ${plan === 'Free' ? 'blur-[4px] pointer-events-none select-none overflow-hidden' : ''}`}>
+                        <div>
                             <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-8 transition-colors tracking-tight">Generation History</h1>
 
                             <div className="space-y-4">
                                 {history.length === 0 ? (
                                     <p className="text-slate-400 italic">No magic saved in your account yet...</p>
                                 ) : (
-                                    (plan === 'Free' ? [...history, ...history, ...history].slice(0, 6) : history).map((item, idx) => (
+                                    history.map((item, idx) => (
                                         <button
                                             key={item.id || idx}
                                             onClick={() => {
@@ -555,27 +518,6 @@ const Dashboard = () => {
                                 )}
                             </div>
                         </div>
-
-                        {plan === 'Free' && (
-                            <div className="absolute inset-0 flex items-center justify-center p-6 bg-slate-900/5 dark:bg-slate-900/20 backdrop-blur-[4px] z-10 transition-all duration-500">
-                                <div className="max-w-sm w-full bg-white dark:bg-slate-900 rounded-[32px] p-8 shadow-[0_20px_80px_rgba(0,0,0,0.2)] border border-slate-100 dark:border-indigo-500/10 text-center animate-in zoom-in duration-500">
-                                    <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                                        <Lock className="text-indigo-600 dark:text-indigo-400 w-8 h-8" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Unlock Your History</h2>
-                                    <p className="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed text-sm">
-                                        Free users can't save generations. Upgrade to Plus or Pro to store and manage your AI creations forever.
-                                    </p>
-                                    <button
-                                        onClick={() => navigate('/pricing')}
-                                        className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-black shadow-xl shadow-indigo-500/25 hover:scale-[1.02] transition-transform active:scale-95 flex items-center justify-center gap-2"
-                                    >
-                                        <Zap size={18} className="fill-current" />
-                                        Upgrade Now
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 )}
 
@@ -608,22 +550,16 @@ const Dashboard = () => {
                             </div>
                             <div className="space-y-4">
                                 <button className="w-full text-left p-4 rounded-xl border border-slate-200 dark:border-indigo-500/20 hover:border-indigo-300 dark:hover:border-indigo-400 bg-transparent dark:bg-indigo-900/5 transition-all font-medium text-slate-600 dark:text-indigo-300/80">Update Profile</button>
-                                <button onClick={() => navigate('/pricing')} className="w-full text-left p-4 rounded-xl border border-slate-200 dark:border-indigo-500/20 hover:border-indigo-300 dark:hover:border-indigo-400 bg-transparent dark:bg-indigo-900/5 transition-all font-medium text-slate-600 dark:text-indigo-300/80 flex items-center justify-between group">
-                                    <span>Billing & Subscription</span>
-                                    <Zap size={16} className="text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <button
+                                    onClick={() => navigate('/support')}
+                                    className="w-full text-left p-4 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all font-bold flex items-center justify-between group"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Shield size={18} className="text-indigo-600 dark:text-indigo-400" />
+                                        <span>Direct Support Line</span>
+                                    </div>
+                                    <ArrowRight size={16} className="text-indigo-600 dark:text-indigo-400" />
                                 </button>
-                                {plan !== 'Free' && (
-                                    <button
-                                        onClick={() => navigate('/support')}
-                                        className="w-full text-left p-4 rounded-xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all font-bold flex items-center justify-between group"
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <Shield size={18} className="text-indigo-600 dark:text-indigo-400" />
-                                            <span>Priority Support Line</span>
-                                        </div>
-                                        <ArrowRight size={16} className="text-indigo-600 dark:text-indigo-400" />
-                                    </button>
-                                )}
                                 <button
                                     onClick={toggleTheme}
                                     className="md:hidden w-full text-left p-4 rounded-xl border border-slate-200 dark:border-indigo-500/20 hover:border-indigo-300 dark:hover:border-indigo-400 bg-transparent dark:bg-indigo-900/5 transition-all font-medium text-slate-600 dark:text-indigo-300/80 flex items-center justify-between"

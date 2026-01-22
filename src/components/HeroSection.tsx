@@ -38,7 +38,7 @@ const HeroSection = () => {
               variant="hero"
               size="lg"
             >
-              Start Free Trial
+              Get Started Now
               <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
           </a>

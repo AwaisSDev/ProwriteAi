@@ -70,6 +70,8 @@ export default function Onboarding() {
                 niches: selectedNiches,
                 goal: selectedGoal,
                 onboarding_complete: true,
+                plan: 'Pro',
+                credits: 50,
                 updated_at: new Date().toISOString()
             };
 

@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 const footerLinks = {
   product: [
     { label: "Features", href: "#features" },
-    { label: "Pricing", href: "#" },
     { label: "Demo", href: "#demo" },
+    { label: "History", href: "/dashboard" },
     { label: "API", href: "#" },
   ],
   company: [
@@ -53,7 +53,7 @@ const Footer = () => {
           <Button
             size="lg"
             className="bg-primary text-white font-semibold hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-0"
-          > <a href="#demo">Start Your Free Trial</a>
+          > <a href="/onboarding">Start Creating Magic</a>
           </Button>
         </div>
 

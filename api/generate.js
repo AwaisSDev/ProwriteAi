@@ -28,28 +28,49 @@ export default async function handler(req, res) {
             return res.status(401).json({ error: "Invalid or expired token" });
         }
 
-        // 2. Check Credits & Plan
-        const { data: profile, error: profileError } = await supabase
+        // 2. Fetch/Reset Credits & Plan
+        const { data: initialProfile, error: profileError } = await supabase
             .from('profiles')
-            .select('credits, plan')
+            .select('credits, plan, last_reset_date')
             .eq('id', user.id)
             .single();
 
+        let profile = initialProfile;
         if (profileError) {
-            console.error("Profile fetch error:", profileError);
-            return res.status(500).json({ error: "Failed to fetch user profile" });
+            console.error("Profile fetch error (possibly missing column):", profileError.message);
+            // If the column doesn't exist, let's at least try to get basic info
+            const { data: fallbackProfile } = await supabase.from('profiles').select('credits, plan').eq('id', user.id).single();
+            if (!fallbackProfile) return res.status(500).json({ error: "Failed to fetch user profile" });
+            profile = fallbackProfile;
         }
 
-        const userPlan = profile.plan || 'Free';
+        // --- DAILY RESET LOGIC ---
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        let currentCredits = profile?.credits ?? 0;
 
-        if (profile.credits < 1) {
-            return res.status(403).json({ error: "Insufficient credits. Please upgrade or top up." });
+        // Only attempt reset if the column exists in the fetched profile
+        if (profile && 'last_reset_date' in profile && profile.last_reset_date !== today) {
+            // New day! Reset to 50
+            currentCredits = 50;
+            const { error: resetError } = await supabase
+                .from('profiles')
+                .update({ credits: 50, last_reset_date: today, plan: 'Pro' })
+                .eq('id', user.id);
+
+            if (resetError) console.warn("Could not reset daily credits (column may be missing):", resetError.message);
+        }
+        // -------------------------
+
+        const userPlan = 'Pro'; // Force Pro for everyone!
+
+        if (currentCredits < 1) {
+            return res.status(403).json({ error: "Daily limit reached (50/50). Come back tomorrow!" });
         }
 
         // 3. Deduct Credit
         const { error: updateError } = await supabase
             .from('profiles')
-            .update({ credits: profile.credits - 1 })
+            .update({ credits: currentCredits - 1 })
             .eq('id', user.id);
 
         if (updateError) {
