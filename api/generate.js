@@ -50,11 +50,11 @@ export default async function handler(req, res) {
 
         // Only attempt reset if the column exists in the fetched profile
         if (profile && 'last_reset_date' in profile && profile.last_reset_date !== today) {
-            // New day! Reset to 50
-            currentCredits = 50;
+            // New day! Reset to 10
+            currentCredits = 10;
             const { error: resetError } = await supabase
                 .from('profiles')
-                .update({ credits: 50, last_reset_date: today, plan: 'Pro' })
+                .update({ credits: 10, last_reset_date: today, plan: 'Pro' })
                 .eq('id', user.id);
 
             if (resetError) console.warn("Could not reset daily credits (column may be missing):", resetError.message);
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
         const userPlan = 'Pro'; // Force Pro for everyone!
 
         if (currentCredits < 1) {
-            return res.status(403).json({ error: "Daily limit reached (50/50). Come back tomorrow!" });
+            return res.status(403).json({ error: "Daily limit reached (10/10). Come back tomorrow!" });
         }
 
         // 3. Deduct Credit

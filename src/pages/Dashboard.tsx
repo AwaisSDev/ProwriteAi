@@ -67,10 +67,10 @@ const Dashboard = () => {
 
                     // Only attempt reset logic if we have the date column
                     if ('last_reset_date' in profile && profile.last_reset_date !== today) {
-                        finalCredits = 50;
+                        finalCredits = 10;
                         await supabase
                             .from('profiles')
-                            .update({ credits: 50, last_reset_date: today, plan: 'Pro' })
+                            .update({ credits: 10, last_reset_date: today, plan: 'Pro' })
                             .eq('id', user.id);
                     }
 
@@ -293,7 +293,7 @@ const Dashboard = () => {
                     <div className="mb-6 px-2 text-center">
                         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-lg dark:shadow-none relative overflow-hidden group">
                             <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-1">Daily Credits</p>
-                            <p className="text-2xl font-bold">{credits} / 50</p>
+                            <p className="text-2xl font-bold">{credits} / 10</p>
                             <p className="text-[10px] font-bold uppercase opacity-60 mt-2">Resets Daily</p>
                         </div>
                     </div>
@@ -337,7 +337,7 @@ const Dashboard = () => {
                             <div className="md:hidden mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-4 text-white shadow-lg flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-medium text-white/80 uppercase tracking-wider mb-0.5">Daily Credits Remaining</p>
-                                    <p className="text-2xl font-bold leading-none">{credits} / 50</p>
+                                    <p className="text-2xl font-bold leading-none">{credits} / 10</p>
                                 </div>
                                 <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
                                     <Sparkles size={20} className="text-white" />

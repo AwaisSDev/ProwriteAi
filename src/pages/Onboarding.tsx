@@ -71,7 +71,7 @@ export default function Onboarding() {
                 goal: selectedGoal,
                 onboarding_complete: true,
                 plan: 'Pro',
-                credits: 50,
+                credits: 10,
                 updated_at: new Date().toISOString()
             };
 
